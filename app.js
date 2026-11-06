@@ -116,11 +116,13 @@ function initChart() {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const maxPoints = 72
   const points = []
-  let value = 38
+  let value = 40
+  let zigDir = 1
 
-  // Seed the history with a rising curve
+  // Seed the history with a rising zigzag
   for (let i = 0; i < maxPoints; i++) {
-    value += 0.55 + Math.random() * 0.7
+    value += zigDir > 0 ? 1.6 + Math.random() * 1.4 : -(0.35 + Math.random() * 0.6)
+    zigDir = -zigDir
     points.push(value)
   }
 
@@ -133,7 +135,12 @@ function initChart() {
     if (now - last < addEvery) return
     last = now
     const prev = points[points.length - 1]
-    points.push(prev + 0.25 + Math.random() * 1.15)
+    // Zigzag: sharp step up, small dip down — net growth forever
+    const delta = zigDir > 0
+      ? 1.5 + Math.random() * 1.6
+      : -(0.3 + Math.random() * 0.7)
+    zigDir = -zigDir
+    points.push(prev + delta)
     if (points.length > maxPoints) points.shift()
   }
 
@@ -142,12 +149,7 @@ function initChart() {
     ctx.beginPath()
     ctx.moveTo(0, yFor(points[0]))
     for (let i = 1; i < points.length; i++) {
-      const x = i * stepX
-      const y = yFor(points[i])
-      const px = (i - 1) * stepX
-      const py = yFor(points[i - 1])
-      const cx = (px + x) / 2
-      ctx.bezierCurveTo(cx, py, cx, y, x, y)
+      ctx.lineTo(i * stepX, yFor(points[i]))
     }
   }
 
@@ -190,7 +192,7 @@ function initChart() {
     stroke.addColorStop(0, '#ffb340')
     stroke.addColorStop(1, '#ff7a00')
     ctx.strokeStyle = stroke
-    ctx.lineWidth = 2.5
+    ctx.lineWidth = 2.2
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
     ctx.shadowColor = 'rgba(255, 166, 0, .75)'
@@ -250,14 +252,30 @@ function initChart() {
 
 initChart()
 
-// --- FPS counter: 60 → 240 → repeat ---
+// --- FPS counter: smooth 60 → 240, glitch reset, repeat ---
 const perfNumber = document.querySelector('.perf-number[data-count]')
 if (perfNumber) {
   const target = parseInt(perfNumber.dataset.count, 10) || 240
   const from = 60
-  const duration = 2600
-  const hold = 900
+  const duration = 3200
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  const glitchReset = (done) => {
+    // Chromatic jitter (CSS) + number scramble, then land on 60
+    perfNumber.classList.add('is-glitching')
+    let ticks = 0
+    const total = 9
+    const iv = setInterval(() => {
+      ticks++
+      perfNumber.textContent = Math.floor(from + Math.random() * (target - from))
+      if (ticks >= total) {
+        clearInterval(iv)
+        perfNumber.textContent = from
+        perfNumber.classList.remove('is-glitching')
+        done()
+      }
+    }, 55)
+  }
 
   const cycle = () => {
     if (reduced) {
@@ -270,10 +288,11 @@ if (perfNumber) {
       const eased = 1 - Math.pow(1 - p, 3)
       perfNumber.textContent = Math.round(from + (target - from) * eased)
       if (p < 1) requestAnimationFrame(tick)
-      else setTimeout(cycle, hold)
+      else setTimeout(() => glitchReset(cycle), 850)
     }
     requestAnimationFrame(tick)
   }
 
-  setTimeout(cycle, 400)
+  perfNumber.textContent = from
+  setTimeout(cycle, 500)
 }
