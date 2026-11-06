@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Админ-панель — BASHMAK PC</title>
+  <meta name="theme-color" content="#050505" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #050505;
+      --orange: #ffa600;
+      --white: #ffffff;
+      --muted: rgba(255,255,255,.64);
+      --line: rgba(255,255,255,.08);
+      --card: rgba(10,10,12,.72);
+      --radius: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background: var(--black); color: var(--white);
+      font-family: "Manrope", system-ui, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .admin-panel {
+      width: 100%; max-width: 560px;
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 32px;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    }
+    h1 { font-family: "Unbounded", sans-serif; font-size: 22px; margin: 0 0 8px; letter-spacing: -.03em; }
+    p.sub { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+    input, select, textarea {
+      width: 100%; padding: 12px 14px; margin-bottom: 16px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--line);
+      border-radius: 10px; color: var(--white); font-family: inherit; font-size: 15px;
+      transition: border-color .2s ease;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--orange); }
+    textarea { resize: vertical; min-height: 90px; }
+    button {
+      width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer;
+      background: linear-gradient(135deg, #ffc46b, var(--orange)); color: #0a0a0a;
+      font-family: inherit; font-size: 15px; font-weight: 700;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255,166,0,.3); }
+    button:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .msg { margin-top: 14px; font-size: 14px; text-align: center; min-height: 20px; }
+    .msg.ok { color: #6fddaa; } .msg.err { color: #ff6b6b; }
+    a.back { display: inline-block; margin-top: 18px; color: var(--muted); font-size: 13px; text-decoration: none; }
+    a.back:hover { color: var(--orange); }
+  </style>
+</head>
+<body>
+  <div class="admin-panel">
+    <h1>Добавить отзыв</h1>
+    <p class="sub">Ключ проверяется сервером — панель работает, пока запущен <code>node serve.mjs</code>. После добавления отзыва на локальном сервере обнови <code>reviews.json</code> в репозитории для GitHub Pages.</p>
+
+    <form id="review-form">
+      <label for="key">Ключ администратора</label>
+      <input id="key" type="password" placeholder="bashmak-admin" autocomplete="off" required />
+
+      <label for="name">Имя клиента</label>
+      <input id="name" type="text" placeholder="Например: Данил" maxlength="60" required />
+
+      <label for="tag">Тариф / пакет</label>
+      <select id="tag">
+        <option value="">— без тега —</option>
+        <option value="Bronze">Bronze</option>
+        <option value="Standart">Standart</option>
+        <option value="Platinum">Platinum</option>
+      </select>
+
+      <label for="rating">Оценка (1–5)</label>
+      <select id="rating">
+        <option value="5">5 ★★★★★</option>
+        <option value="4">4 ★★★★</option>
+        <option value="3">3 ★★★</option>
+        <option value="2">2 ★★</option>
+        <option value="1">1 ★</option>
+      </select>
+
+      <label for="text">Отзыв</label>
+      <textarea id="text" placeholder="Что именно понравилось, какой результат…" maxlength="600" required></textarea>
+
+      <button type="submit" id="submit-btn">Сохранить отзыв</button>
+      <div class="msg" id="msg"></div>
+    </form>
+
+    <a class="back" href="/">← Вернуться на сайт</a>
+  </div>
+
+  <script>
+    const form = document.getElementById('review-form')
+    const msg = document.getElementById('msg')
+    const btn = document.getElementById('submit-btn')
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      msg.textContent = ''
+      msg.className = 'msg'
+      btn.disabled = true
+      btn.textContent = 'Сохраняем…'
+
+      const payload = {
+        key: document.getElementById('key').value.trim(),
+        name: document.getElementById('name').value.trim(),
+        tag: document.getElementById('tag').value,
+        rating: Number(document.getElementById('rating').value),
+        text: document.getElementById('text').value.trim(),
+      }
+
+      try {
+        const res = await fetch('api/reviews', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': payload.key,
+          },
+          body: JSON.stringify(payload),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          msg.textContent = data.error || 'Ошибка ' + res.status
+          msg.classList.add('err')
+        } else {
+          msg.textContent = 'Отзыв добавлен!'
+          msg.classList.add('ok')
+          document.getElementById('name').value = ''
+          document.getElementById('text').value = ''
+        }
+      } catch (err) {
+        msg.textContent = 'Не удалось связаться с сервером.'
+        msg.classList.add('err')
+      } finally {
+        btn.disabled = false
+        btn.textContent = 'Сохранить отзыв'
+      }
+    })
+  </script>
+</body>
+</html>
