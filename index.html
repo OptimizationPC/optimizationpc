@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BASHMAK PC — оптимизация ПК, Windows и BIOS</title>
+  <meta name="description" content="Индивидуальная оптимизация ПК: чистая установка Windows, твики, настройка BIOS/UEFI, охлаждение и отклик системы. Тарифы от 690 ₽." />
+  <meta name="theme-color" content="#050505" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>document.documentElement.classList.add('js');</script>
+  <script type="importmap">
+    {
+      "imports": {
+        "shaders/js": "./assets/shaders-bundle.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="shader-fallback" aria-hidden="true"></div>
+  <canvas id="shader-canvas" aria-hidden="true"></canvas>
+  <div class="shader-veil" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="page">
+    <header class="site-header" id="top">
+      <div class="container header-inner">
+        <a class="brand" href="#top" aria-label="BASHMAK PC — на главную">
+          <img class="brand__logo" src="assets/logo.png" width="550" height="384" alt="" />
+          <span class="brand__text">
+            <span class="brand__name">BASHMAK</span>
+            <span class="brand__sub">PC OPTIMIZATION</span>
+          </span>
+        </a>
+
+        <nav class="nav" aria-label="Основная навигация">
+          <a class="nav__link" href="#services">Подход</a>
+          <a class="nav__link" href="#pricing">Тарифы</a>
+          <a class="nav__link" href="#process">Как это работает</a>
+        </nav>
+
+        <a class="btn btn--ghost btn--small header-cta" href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="m21.5 4.5-4.2 15.1c-.2.8-1.1 1-1.7.5l-4.6-3.4-2.2 2.1c-.4.4-1.1.2-1.1-.3v-3.1l8.4-7.6c.4-.4-.1-.6-.6-.3l-10.4 6.4-3.5-1.1c-.7-.2-.8-1.1-.1-1.4L20.3 3c.7-.2 1.3.3 1.2 1.5Z" />
+          </svg>
+          Telegram
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container">
+        <div class="hero__copy reveal">
+          <div class="eyebrow">
+            <span class="eyebrow__dot" aria-hidden="true"></span>
+            Настройка ПК под ключ
+          </div>
+
+          <h1>Выжми <span class="accent">максимум</span><br />из своего ПК<span class="accent-dot">.</span></h1>
+
+          <p class="hero__lead">
+            Чистая Windows, грамотные твики, BIOS и охлаждение. Настраиваю вручную
+            под твоё железо — без сомнительных «оптимизаторов» и обещаний из воздуха.
+          </p>
+
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="#pricing">
+              Выбрать тариф
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </a>
+            <a class="btn btn--ghost" href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">
+              Написать в Telegram
+            </a>
+          </div>
+
+          <div class="hero__stats" aria-label="Кратко о предложении">
+            <div class="stat">
+              <strong>690 ₽</strong>
+              <span>стартовый тариф</span>
+            </div>
+            <div class="stat">
+              <strong>3</strong>
+              <span>уровня настройки</span>
+            </div>
+            <div class="stat">
+              <strong>1:1</strong>
+              <span>ручная работа</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero__visual reveal">
+          <div class="perf-card" aria-label="Демонстрационная панель производительности">
+            <div class="perf-card__top">
+              <span class="panel-label">// system.session</span>
+              <span class="live"><i aria-hidden="true"></i> demo</span>
+            </div>
+
+            <div class="perf-card__headline">
+              <div class="perf-value">
+                <span class="perf-number" data-count="240">96</span>
+                <span class="perf-unit">FPS</span>
+              </div>
+              <span class="perf-badge">+150%</span>
+            </div>
+            <p class="perf-caption">стабильный фреймтайм в демо-профиле</p>
+
+            <div class="chart" aria-hidden="true">
+              <svg viewBox="0 0 420 150" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ffa600" stop-opacity=".34" />
+                    <stop offset="100%" stop-color="#ffa600" stop-opacity="0" />
+                  </linearGradient>
+                  <linearGradient id="chart-line" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#ffb340" />
+                    <stop offset="100%" stop-color="#ff7a00" />
+                  </linearGradient>
+                  <filter id="chart-glow" x="-30%" y="-80%" width="160%" height="260%">
+                    <feGaussianBlur stdDeviation="4" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <g class="chart__grid" stroke="rgba(255,255,255,.09)" stroke-width="1">
+                  <line x1="0" y1="20" x2="420" y2="20" />
+                  <line x1="0" y1="70" x2="420" y2="70" />
+                  <line x1="0" y1="120" x2="420" y2="120" />
+                </g>
+
+                <path class="chart__area" d="M0 122 C22 120 40 110 62 112 C84 114 98 96 120 98 C142 100 154 82 176 76 C198 70 212 86 234 78 C256 70 270 52 292 48 C314 44 330 30 350 28 C372 26 394 12 420 8 L420 150 L0 150 Z" fill="url(#chart-fill)" />
+                <path class="chart__line" d="M0 122 C22 120 40 110 62 112 C84 114 98 96 120 98 C142 100 154 82 176 76 C198 70 212 86 234 78 C256 70 270 52 292 48 C314 44 330 30 350 28 C372 26 394 12 420 8" fill="none" stroke="url(#chart-line)" stroke-width="2.5" stroke-linecap="round" filter="url(#chart-glow)" />
+                <circle class="chart__point" cx="420" cy="8" r="4.5" fill="#ffa600" filter="url(#chart-glow)" />
+              </svg>
+              <div class="chart__labels" aria-hidden="true">
+                <span>frame time</span>
+                <span>240</span>
+              </div>
+            </div>
+
+            <div class="perf-metrics">
+              <div class="perf-metric">
+                <span>Input lag</span>
+                <strong>−24%</strong>
+              </div>
+              <div class="perf-metric">
+                <span>1% low</span>
+                <strong>стабильно</strong>
+              </div>
+              <div class="perf-metric">
+                <span>BIOS</span>
+                <strong>tuned</strong>
+              </div>
+            </div>
+
+            <p class="perf-footnote">Визуализация профиля. Прирост зависит от железа и исходного состояния системы.</p>
+          </div>
+
+          <div class="float-chip float-chip--one" aria-hidden="true">
+            <span class="float-chip__dot"></span> Windows clean
+          </div>
+          <div class="float-chip float-chip--two" aria-hidden="true">
+            <span class="float-chip__dot"></span> BIOS tuned
+          </div>
+        </div>
+      </section>
+
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee__track">
+          <span>Windows</span><i>✦</i>
+          <span>BIOS / UEFI</span><i>✦</i>
+          <span>Tweaks</span><i>✦</i>
+          <span>Input lag</span><i>✦</i>
+          <span>Cooling</span><i>✦</i>
+          <span>Stability</span><i>✦</i>
+          <span>Windows</span><i>✦</i>
+          <span>BIOS / UEFI</span><i>✦</i>
+          <span>Tweaks</span><i>✦</i>
+          <span>Input lag</span><i>✦</i>
+          <span>Cooling</span><i>✦</i>
+          <span>Stability</span><i>✦</i>
+        </div>
+      </div>
+
+      <section class="section" id="services">
+        <div class="container">
+          <div class="section-heading reveal">
+            <span class="kicker">// подход</span>
+            <h2>Настройка,<br /><span class="muted">а не лотерея.</span></h2>
+            <p>
+              Каждый параметр проверяю на конкретном железе. Никаких универсальных
+              скриптов «для всех» — только то, что действительно даёт результат.
+            </p>
+          </div>
+
+          <div class="features">
+            <article class="feature-card reveal">
+              <span class="feature-num" aria-hidden="true">01</span>
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="3" y="4" width="18" height="13" rx="2" />
+                  <path d="M8 21h8M12 17v4M7 8h4M7 11h7" />
+                </svg>
+              </div>
+              <h3>Чистая основа</h3>
+              <p>
+                Переустановка Windows с полным форматированием и подготовкой системы
+                под твоё железо. Никакого мусора и лишних процессов.
+              </p>
+              <div class="feature-tags">
+                <span>Windows</span>
+                <span>Drivers</span>
+                <span>Clean install</span>
+              </div>
+            </article>
+
+            <article class="feature-card reveal">
+              <span class="feature-num" aria-hidden="true">02</span>
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h10M18 18h2" />
+                  <circle cx="16" cy="6" r="2" />
+                  <circle cx="8" cy="12" r="2" />
+                  <circle cx="16" cy="18" r="2" />
+                </svg>
+              </div>
+              <h3>Отклик, а не цифры</h3>
+              <p>
+                Отключаю лишние службы, настраиваю питание и фоновые процессы.
+                Система быстрее реагирует на мышь, клавиатуру и запуск игр.
+              </p>
+              <div class="feature-tags">
+                <span>Services</span>
+                <span>Tweaks</span>
+                <span>Input lag</span>
+              </div>
+            </article>
+
+            <article class="feature-card reveal">
+              <span class="feature-num" aria-hidden="true">03</span>
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                  <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" />
+                  <path d="M10 10h4v4h-4z" />
+                </svg>
+              </div>
+              <h3>BIOS и температура</h3>
+              <p>
+                Работаю с открытыми и скрытыми параметрами BIOS/UEFI, кривыми
+                вентиляторов и стабильностью. Больше производительности без перегрева.
+              </p>
+              <div class="feature-tags">
+                <span>BIOS</span>
+                <span>UEFI</span>
+                <span>Cooling</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--pricing" id="pricing">
+        <div class="container">
+          <div class="section-heading section-heading--center reveal">
+            <span class="kicker">// прайс-лист</span>
+            <h2>Три уровня <span class="accent">отклика</span></h2>
+            <p>
+              От чистой базы до полной доводки BIOS. Выбери глубину — остальное
+              сделаю вручную.
+            </p>
+          </div>
+
+          <div class="pricing-grid">
+            <article class="price-card reveal" id="bronze">
+              <div class="price-card__top">
+                <span class="tier tier--bronze">
+                  <span class="tier__emoji" aria-hidden="true">⭐</span> Bronze
+                </span>
+                <span class="price"><span class="price__coin" aria-hidden="true">💰</span>690 <span>₽</span></span>
+              </div>
+              <h3>Базовая настройка Windows</h3>
+              <p class="price-card__desc">Чистая система и базовая оптимизация — с чего начинается порядок.</p>
+
+              <div class="price-card__divider" aria-hidden="true"></div>
+              <p class="includes">Включает в себя:</p>
+              <ul class="checks">
+                <li>
+                  <span><strong>Переустановка Windows</strong> — чистая установка нужной под ваше железо версии Windows с полным форматированием и подготовкой системы под оптимальную работу</span>
+                </li>
+                <li>
+                  <span><strong>Базовая оптимизация Windows</strong> — отключение лишних служб, настройка производительности, минимизация фоновых процессов</span>
+                </li>
+                <li>
+                  <span><strong>Ускорение работы системы</strong> — улучшение отклика системы уже после базовой настройки</span>
+                </li>
+              </ul>
+
+              <a class="btn btn--card" href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">
+                Выбрать Bronze
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </a>
+            </article>
+
+            <article class="price-card price-card--featured reveal" id="standart">
+              <span class="popular-badge">Популярный выбор</span>
+              <div class="price-card__top">
+                <span class="tier tier--standart">
+                  <span class="tier__emoji" aria-hidden="true">🔥</span> Standart
+                </span>
+                <span class="price"><span class="price__coin" aria-hidden="true">💰</span>1 190 <span>₽</span></span>
+              </div>
+              <h3>Оптимизация Windows + базовые твики и открытие настройки BIOS</h3>
+              <p class="price-card__desc">Для тех, кому нужен заметный отклик и больше контроля над железом.</p>
+
+              <div class="price-card__divider" aria-hidden="true"></div>
+              <p class="carryover">Всё из пакета <strong>Bronze</strong> +</p>
+              <ul class="checks">
+                <li>
+                  <span><strong>Оптимизация Windows</strong> — продвинутые твики для снижения лагов, фризов и уменьшения нагрузок на систему</span>
+                </li>
+                <li>
+                  <span><strong>Настройка твиков</strong> — грамотная конфигурация параметров под игровую нагрузку</span>
+                </li>
+                <li>
+                  <span><strong>Настройка открытых параметров BIOS</strong> — корректная работа с доступными настройками BIOS/UEFI для повышения стабильности и производительности</span>
+                </li>
+                <li>
+                  <span><strong>Повышенная отзывчивость</strong> — более отзывчивая мышь, убираем инпутлаг</span>
+                </li>
+              </ul>
+
+              <a class="btn btn--primary btn--card" href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">
+                Выбрать Standart
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </a>
+            </article>
+
+            <article class="price-card reveal" id="platinum">
+              <div class="price-card__top">
+                <span class="tier tier--platinum">
+                  <span class="tier__emoji" aria-hidden="true">💫</span> Platinum
+                </span>
+                <span class="price"><span class="price__coin" aria-hidden="true">💰</span>2 390 <span>₽</span></span>
+              </div>
+              <h3>Максимальная настройка с полными настройками в BIOS</h3>
+              <p class="price-card__desc">Глубокая доводка под конфигурацию — когда нужен выжатый максимум.</p>
+
+              <div class="price-card__divider" aria-hidden="true"></div>
+              <p class="carryover">Всё из пакета <strong>Standart</strong> +</p>
+              <ul class="checks">
+                <li>
+                  <span><strong>Глубокая настройка скрытых параметров BIOS</strong> — работа со скрытыми и продвинутыми настройками материнской платы</span>
+                </li>
+                <li>
+                  <span><strong>Настройка системы охлаждения</strong> — настройка кривых вентиляторов для оптимального баланса температуры, шума и производительности</span>
+                </li>
+                <li>
+                  <span><strong>Тонкая доводка под конфигурацию</strong> — индивидуальный подбор параметров с учётом процессора, видеокарты и материнской платы</span>
+                </li>
+                <li>
+                  <span><strong>Максимум стабильности и отклика</strong> — выжим потенциала железа в максимально безопасных значениях</span>
+                </li>
+              </ul>
+
+              <a class="btn btn--card" href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">
+                Выбрать Platinum
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </a>
+            </article>
+          </div>
+
+          <div class="note reveal">
+            <span class="note__heart" aria-hidden="true">❤️</span>
+            <p>Каждая настройка выполняется индивидуально вручную. Всем желаем хороших результатов ❤️</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="process">
+        <div class="container">
+          <div class="section-heading reveal">
+            <span class="kicker">// как это устроено</span>
+            <h2>От заявки до <span class="accent">результата</span></h2>
+            <p>
+              Без воды и удалённых «магических скриптов». Сначала — понять железо,
+              потом — настроить.
+            </p>
+          </div>
+
+          <div class="steps">
+            <article class="step reveal">
+              <span class="step__num" aria-hidden="true">01</span>
+              <h3>Заявка и диагностика</h3>
+              <p>
+                Пишешь в Telegram, рассказываешь о железе и задачах. Подбираем тариф
+                и формат работы.
+              </p>
+            </article>
+            <article class="step reveal">
+              <span class="step__num" aria-hidden="true">02</span>
+              <h3>Настройка системы</h3>
+              <p>
+                Чистая установка, твики, BIOS и охлаждение — по выбранному пакету.
+                Каждый шаг под твою конфигурацию.
+              </p>
+            </article>
+            <article class="step reveal">
+              <span class="step__num" aria-hidden="true">03</span>
+              <h3>Проверка и рекомендации</h3>
+              <p>
+                Тестируем отклик и стабильность, объясняю, что изменилось и как
+                поддерживать систему в форме.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--cta">
+        <div class="container">
+          <div class="cta-panel reveal">
+            <img class="cta-panel__mark" src="assets/logo.png" alt="" aria-hidden="true" />
+            <span class="kicker">// next step</span>
+            <h2>Готов выжать <span class="accent">максимум?</span></h2>
+            <p>
+              Напиши в Telegram — обсудим железо, задачи и подходящий тариф.
+            </p>
+            <a class="btn btn--primary btn--large" href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">
+              Написать @solo_bashmak
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </a>
+            <span class="cta-panel__note">Отвечаю лично · настройка вручную</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <a class="brand brand--footer" href="#top" aria-label="BASHMAK PC — наверх">
+            <img class="brand__logo" src="assets/logo.png" width="550" height="384" alt="" />
+            <span class="brand__text">
+              <span class="brand__name">BASHMAK</span>
+              <span class="brand__sub">PC OPTIMIZATION</span>
+            </span>
+          </a>
+          <p>Оптимизация Windows, BIOS и охлаждения под твоё железо.</p>
+        </div>
+
+        <nav class="footer-nav" aria-label="Навигация в подвале">
+          <a href="#pricing">Тарифы</a>
+          <a href="#process">Как это работает</a>
+          <a href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">Telegram</a>
+        </nav>
+      </div>
+      <div class="container footer-bottom">
+        <span>© 2026 BASHMAK PC</span>
+        <span>Цены не являются публичной офертой.</span>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
