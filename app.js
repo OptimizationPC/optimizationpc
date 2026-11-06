@@ -30,8 +30,8 @@ async function startShader() {
           props: {
             boundingBox: { origin: 'center' },
             colorA: '#000000',
-            colorB: '#ffa600',
-            colorC: '#ffa600',
+            colorB: '#ffa600d9',
+            colorC: '#ffa600b3',
             colorD: '#000000',
             distortion: 0.2,
             opacity: 0.7,
@@ -79,24 +79,97 @@ window.addEventListener('scroll', onScroll, { passive: true })
 onScroll()
 
 // --- Reveal on scroll ---
+let revealObserver = null
 const revealEls = document.querySelectorAll('.reveal')
 if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver((entries) => {
+  revealObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add('is-visible')
-        observer.unobserve(entry.target)
+        revealObserver.unobserve(entry.target)
       }
     })
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' })
 
   revealEls.forEach((el, i) => {
     el.style.setProperty('--reveal-delay', `${Math.min((i % 4) * 80, 240)}ms`)
-    observer.observe(el)
+    revealObserver.observe(el)
   })
 } else {
   revealEls.forEach((el) => el.classList.add('is-visible'))
 }
+
+// --- Reviews: load from /api/reviews and render into #reviews-grid ---
+const reviewsGrid = document.getElementById('reviews-grid')
+
+async function loadReviews() {
+  if (!reviewsGrid) return
+  const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]))
+  const formatDate = (iso) => {
+    try {
+      return iso ? new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+    } catch { return '' }
+  }
+
+  try {
+    // Local server: /api/reviews. Static hosting (GitHub Pages): fallback to reviews.json
+    let list = null
+    try {
+      const res = await fetch('api/reviews', { headers: { accept: 'application/json' } })
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) list = data
+      }
+    } catch {}
+    if (list === null) {
+      try {
+        const res = await fetch('reviews.json')
+        if (res.ok) list = await res.json()
+      } catch {}
+    }
+    if (!Array.isArray(list) || !list.length) {
+      reviewsGrid.innerHTML = '<p class="reviews-empty">Пока нет отзывов.</p>'
+      return
+    }
+
+    reviewsGrid.innerHTML = list.map((r) => {
+      const stars = Array.from({ length: 5 }, (_, i) =>
+        `<span class="review-star${i < (r.rating || 5) ? ' is-filled' : ''}" aria-hidden="true">★</span>`
+      ).join('')
+      const dateStr = formatDate(r.date)
+      const tagHtml = r.tag ? `<span class="review-tag">${escapeHtml(r.tag)}</span>` : ''
+      const textHtml = escapeHtml(r.text || '').replace(/\n/g, '<br>')
+
+      return `
+        <article class="review-card reveal">
+          <div class="review-header">
+            <span class="review-name">${escapeHtml(r.name || 'Клиент')}</span>
+            ${tagHtml}
+          </div>
+          <div class="review-stars" aria-label="Оценка: ${r.rating || 5} из 5">${stars}</div>
+          <p class="review-text">${textHtml}</p>
+          ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
+        </article>
+      `
+    }).join('')
+
+    // Observe newly added review cards for reveal animation
+    if (revealObserver) {
+      reviewsGrid.querySelectorAll('.reveal:not(.is-visible)').forEach((el, i) => {
+        el.style.setProperty('--reveal-delay', `${Math.min(i * 60, 180)}ms`)
+        revealObserver.observe(el)
+      })
+    } else {
+      reviewsGrid.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'))
+    }
+  } catch {
+    reviewsGrid.innerHTML = '<p class="reviews-empty">Не удалось загрузить отзывы.</p>'
+  }
+}
+
+loadReviews()
 
 // --- Live chart: endlessly rising line ---
 function initChart() {
