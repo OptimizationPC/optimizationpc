@@ -114,21 +114,27 @@ async function loadReviews() {
   }
 
   try {
-    // Local server: /api/reviews. Static hosting (GitHub Pages): fallback to reviews.json
+    // GitHub Pages (static): read reviews.json. Local server: prefer the live API.
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
     let list = null
-    try {
-      const res = await fetch('api/reviews', { headers: { accept: 'application/json' } })
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data)) list = data
-      }
-    } catch {}
+
+    if (isLocal) {
+      try {
+        const res = await fetch('api/reviews', { headers: { accept: 'application/json' } })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) list = data
+        }
+      } catch {}
+    }
+
     if (list === null) {
       try {
-        const res = await fetch('reviews.json')
+        const res = await fetch('reviews.json', { cache: 'no-store' })
         if (res.ok) list = await res.json()
       } catch {}
     }
+
     if (!Array.isArray(list) || !list.length) {
       reviewsGrid.innerHTML = '<p class="reviews-empty">Пока нет отзывов.</p>'
       return
