@@ -578,6 +578,13 @@ ul { margin: 0; padding: 0; list-style: none; }
   width: max-content;
   padding: 16px 0;
   animation: marquee 30s linear infinite;
+  will-change: transform;
+}
+
+.marquee__group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .marquee__track span {
@@ -598,11 +605,11 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* --- sections --- */
 .section {
   position: relative;
-  padding: 110px 0;
+  padding: 55px 0;
   scroll-margin-top: 100px;
 }
 
-.section--pricing { padding-top: 90px; }
+.section--pricing { padding-top: 45px; }
 
 .section-heading { max-width: 720px; margin-bottom: 56px; }
 .section-heading h2 {
@@ -953,7 +960,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .step p { color: var(--muted); font-size: 15px; }
 
 /* --- cta --- */
-.section--cta { padding-bottom: 90px; }
+.section--cta { padding-bottom: 45px; }
 
 .cta-panel {
   position: relative;
@@ -1149,6 +1156,199 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .footer-admin:hover { color: var(--orange); }
 
+/* --- glass cards (requested style) --- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 20px 10px rgba(255, 255, 255, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  opacity: 1;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  opacity: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.8),
+    transparent,
+    rgba(255, 255, 255, 0.3)
+  );
+}
+
+/* The glass is light, so panels need ink-coloured text and controls */
+.hero__visual.glass-card {
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  overflow: visible;
+}
+
+.price-card.glass-card { overflow: visible; }
+
+.feature-card.glass-card h3,
+.price-card.glass-card h3,
+.price-card.glass-card .price,
+.price-card.glass-card .checks strong,
+.review-card.glass-card .review-name { color: #0a0a0a; }
+
+.feature-card.glass-card p,
+.price-card.glass-card .price-card__desc,
+.price-card.glass-card .checks li,
+.review-card.glass-card .review-text { color: rgba(0, 0, 0, .66); }
+
+.feature-card.glass-card .feature-num { color: rgba(0, 0, 0, .08); }
+
+.feature-card.glass-card .feature-tags span {
+  border-color: rgba(0, 0, 0, .12);
+  background: rgba(255, 255, 255, .35);
+  color: rgba(0, 0, 0, .58);
+}
+
+.price-card.glass-card .price span { color: rgba(0, 0, 0, .5); }
+.price-card.glass-card .price-card__divider { background: rgba(0, 0, 0, .12); }
+.price-card.glass-card .includes { color: rgba(0, 0, 0, .5); }
+.price-card.glass-card .carryover { color: #a96400; }
+
+.price-card.glass-card .tier {
+  border-color: rgba(0, 0, 0, .14);
+  background: rgba(255, 255, 255, .35);
+  color: #0a0a0a;
+}
+.price-card.glass-card .tier--bronze {
+  color: #8f5315;
+  border-color: rgba(143, 83, 21, .3);
+  background: rgba(232, 161, 92, .2);
+}
+.price-card.glass-card .tier--standart {
+  color: #a65f00;
+  border-color: rgba(255, 166, 0, .45);
+  background: rgba(255, 166, 0, .18);
+}
+.price-card.glass-card .tier--platinum {
+  color: #0a0a0a;
+  border-color: rgba(0, 0, 0, .18);
+  background: rgba(255, 255, 255, .42);
+}
+
+.price-card.glass-card .btn--card {
+  background: rgba(0, 0, 0, .05);
+  border-color: rgba(0, 0, 0, .18);
+  color: #0a0a0a;
+}
+.price-card.glass-card .btn--card:hover {
+  border-color: rgba(255, 166, 0, .7);
+  background: rgba(255, 166, 0, .2);
+}
+
+.review-card.glass-card .review-tag {
+  border-color: rgba(255, 166, 0, .45);
+  background: rgba(255, 166, 0, .2);
+  color: #a65f00;
+}
+.review-card.glass-card .review-star { color: rgba(0, 0, 0, .16); }
+.review-card.glass-card .review-star.is-filled { color: #d97800; }
+.review-card.glass-card .review-date { color: rgba(0, 0, 0, .45); }
+
+.review-name a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, .22);
+  transition: color .25s ease, border-color .25s ease;
+}
+.review-name a:hover {
+  color: #a65f00;
+  border-color: currentColor;
+}
+.review-link-icon {
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: .55;
+}
+
+.marquee.glass-card .marquee__track span { color: rgba(0, 0, 0, .64); }
+
+/* Light-glass hover states */
+.feature-card.glass-card:hover {
+  background: rgba(255, 255, 255, .5);
+  border-color: rgba(255, 255, 255, .55);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .7);
+}
+
+.review-card.glass-card:hover {
+  border-color: rgba(255, 255, 255, .55);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
+}
+
+/* Keep the featured card's tint on top of the glass base */
+.price-card--featured.glass-card {
+  border-color: rgba(255, 166, 0, .5);
+  background:
+    linear-gradient(180deg, rgba(255, 166, 0, .18), rgba(255, 255, 255, .36) 34%),
+    rgba(255, 255, 255, .4);
+}
+.price-card--featured.glass-card::before {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .8), transparent);
+}
+
+/* Gradient border on hover without stealing the glass pseudo-elements */
+.price-card.glass-card:hover {
+  border-width: 2px;
+  border-color: transparent;
+  background:
+    linear-gradient(rgba(255, 255, 255, .46), rgba(255, 255, 255, .46)) padding-box,
+    linear-gradient(90deg, transparent, var(--orange), transparent) border-box;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, .18),
+    0 0 26px rgba(255, 196, 107, .38),
+    0 0 60px rgba(255, 176, 59, .2);
+}
+
+/* Reset the old masked gradient-border pseudo for glass price cards */
+.price-card.glass-card::after {
+  inset: 0 auto auto 0;
+  width: 1px;
+  height: 100%;
+  padding: 0;
+  border-radius: 0;
+  -webkit-mask: none;
+  mask: none;
+  opacity: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.8),
+    transparent,
+    rgba(255, 255, 255, 0.3)
+  );
+}
+
 /* --- responsive --- */
 @media (max-width: 1080px) {
   .hero { grid-template-columns: 1fr; gap: 48px; padding-top: calc(var(--header-h) + 40px); }
@@ -1159,7 +1359,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 @media (max-width: 860px) {
   .nav { display: none; }
-  .section { padding: 80px 0; }
+  .section { padding: 40px 0; }
   .cta-panel { padding: 48px 28px; }
   .float-chip { display: none; }
   .features, .pricing-grid, .steps, .reviews-grid { grid-template-columns: 1fr; }
@@ -1187,4 +1387,7 @@ ul { margin: 0; padding: 0; list-style: none; }
     transition-duration: .01ms !important;
   }
   .js .reveal { opacity: 1; transform: none; }
+
+  /* The marquee is an explicit part of the design: keep it running. */
+  .marquee__track { animation: marquee 30s linear infinite !important; }
 }
