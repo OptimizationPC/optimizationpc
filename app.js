@@ -1,80 +1,10 @@
-import { createShader } from 'shaders/js'
-
-const canvas = document.getElementById('shader-canvas')
-const body = document.body
-
-// --- Shader background ("Evening Starling", shaders.com id 4748559) ---
-async function startShader() {
-  if (!canvas || !navigator.gpu) {
-    body.classList.add('shader-failed')
-    return
-  }
-
-  try {
-    const shader = await createShader(canvas, {
-      components: [
-        {
-          type: 'RoundedRect',
-          id: 'idmw55fm7sr2n7fv7vp',
-          props: {
-            center: { x: 0.5, y: 0.51 },
-            color: '#000000',
-            height: 0.5319,
-            strokeColor: '#00000000',
-            width: 0.9139,
-          },
-        },
-        {
-          type: 'FlowingGradient',
-          id: 'idmw3v7s4chuot04689',
-          props: {
-            boundingBox: { origin: 'center' },
-            colorA: '#000000',
-            colorB: '#ffa600d9',
-            colorC: '#ffa600b3',
-            colorD: '#000000',
-            distortion: 0.2,
-            opacity: 0.7,
-            seed: 45,
-          },
-        },
-      ],
-    }, {
-      disableTelemetry: true,
-      onReady: () => {
-        body.classList.add('shader-ready')
-        canvas.style.opacity = '0.92'
-      },
-    })
-
-    let resizeTimer
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer)
-      resizeTimer = setTimeout(() => shader.resize(), 120)
-    }, { passive: true })
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) shader.pause()
-      else shader.resume()
-    })
-
-    // Safety net: show the canvas even if onReady never fires
-    setTimeout(() => {
-      body.classList.add('shader-ready')
-      canvas.style.opacity = '0.92'
-    }, 2500)
-  } catch (err) {
-    console.warn('[shader] failed to start:', err)
-    body.classList.add('shader-failed')
-    body.classList.add('shader-ready')
-  }
-}
-
-startShader()
 
 // --- Header scroll state ---
 const header = document.querySelector('.site-header')
-const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 16)
+const onScroll = () => {
+  if (!header) return
+  header.classList.toggle('is-scrolled', window.scrollY > 16)
+}
 window.addEventListener('scroll', onScroll, { passive: true })
 onScroll()
 
@@ -136,7 +66,11 @@ function socialNetworkOf(link) {
 
 async function loadReviews() {
   if (!reviewsGrid) return
-  const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
+  if (typeof fetch !== 'function') {
+    reviewsGrid.innerHTML = '<p class="reviews-empty">Пока нет отзывов.</p>'
+    return
+  }
+  const escapeHtml = (str) => String(str == null ? '' : str).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]))
   const formatDate = (iso) => {
