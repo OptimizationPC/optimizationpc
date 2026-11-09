@@ -65,10 +65,19 @@ function sanitizeReview(input) {
   const name = String(input.name || '').trim().slice(0, 60)
   const text = String(input.text || '').trim().slice(0, 1200)
   const tag = String(input.tag || '').trim().slice(0, 40)
+  let link = String(input.link || '').trim().slice(0, 300)
+  if (link) {
+    try {
+      const url = new URL(/^https?:\/\//i.test(link) ? link : `https://${link}`)
+      link = url.hostname.includes('.') ? url.href : ''
+    } catch {
+      link = ''
+    }
+  }
   let rating = parseInt(input.rating, 10)
   if (!Number.isFinite(rating)) rating = 5
   rating = Math.min(5, Math.max(1, rating))
-  return { name, text, tag, rating }
+  return { name, text, tag, link, rating }
 }
 
 async function handleApi(req, res, url) {
@@ -90,13 +99,14 @@ async function handleApi(req, res, url) {
     } catch {
       return sendJson(res, 400, { error: 'Некорректный JSON' })
     }
-    const { name, text, tag, rating } = sanitizeReview(input)
+    const { name, text, tag, link, rating } = sanitizeReview(input)
     if (!name || !text) return sendJson(res, 400, { error: 'Имя и текст обязательны' })
 
     const reviews = readReviews()
     const review = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       name,
+      link,
       tag,
       rating,
       text,
