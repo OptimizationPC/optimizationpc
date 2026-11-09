@@ -63,6 +63,21 @@
     button:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
     .msg { margin-top: 14px; font-size: 14px; text-align: center; min-height: 20px; line-height: 1.5; }
     .msg.ok { color: #6fddaa; } .msg.err { color: #ff6b6b; }
+    .reviews-manage { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 20px; }
+    .reviews-manage h2 { font-family: "Unbounded", sans-serif; font-size: 15px; letter-spacing: -.02em; margin: 0 0 14px; }
+    .reviews-list { display: flex; flex-direction: column; gap: 10px; }
+    .review-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.04); }
+    .review-item__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .review-item__name { font-size: 14px; font-weight: 700; }
+    .review-item__meta { color: var(--muted); font-size: 12px; }
+    .review-item__text { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.5; }
+    .delete-btn {
+      width: auto; min-height: 0; padding: 6px 12px; font-size: 12px; border-radius: 8px;
+      background: rgba(255,80,80,.12); color: #ff8a8a; border: 1px solid rgba(255,80,80,.35);
+      flex-shrink: 0;
+    }
+    .delete-btn:hover { background: rgba(255,80,80,.22); box-shadow: none; transform: none; }
+    .reviews-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
     a.back { display: inline-block; margin-top: 18px; color: var(--muted); font-size: 13px; text-decoration: none; }
     a.back:hover { color: var(--orange); }
   </style>
@@ -106,6 +121,13 @@
       <button type="submit" id="submit-btn">Сохранить отзыв</button>
       <div class="msg" id="msg"></div>
     </form>
+
+    <section class="reviews-manage">
+      <h2>Существующие отзывы</h2>
+      <div class="reviews-list" id="reviews-list">
+        <p class="reviews-empty">Загружаем…</p>
+      </div>
+    </section>
 
     <a class="back" href="index.html">← Вернуться на сайт</a>
   </div>
@@ -209,6 +231,133 @@
       if (!putRes.ok) throw new Error(result.message || 'GitHub API: ' + putRes.status)
       return review
     }
+
+    const reviewsList = document.getElementById('reviews-list')
+    let currentReviews = []
+
+    const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]))
+
+    async function fetchReviewList() {
+      if (isLocal) {
+        try {
+          const res = await fetch('api/reviews', { cache: 'no-store' })
+          if (res.ok) {
+            const data = await res.json()
+            if (Array.isArray(data)) return data
+          }
+        } catch {}
+      }
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/reviews.json?t=${Date.now()}`, { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) return data
+        }
+      } catch {}
+      try {
+        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}&t=${Date.now()}`, {
+          headers: { accept: 'application/vnd.github.raw+json' },
+          cache: 'no-store',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) return data
+        }
+      } catch {}
+      return []
+    }
+
+    function renderReviewList(list) {
+      if (!Array.isArray(list) || !list.length) {
+        reviewsList.innerHTML = '<p class="reviews-empty">Отзывов пока нет.</p>'
+        return
+      }
+      reviewsList.innerHTML = list.map((r) => {
+        const text = String(r.text || '')
+        const short = text.length > 120 ? text.slice(0, 120) + '…' : text
+        return `
+          <div class="review-item" data-id="${escapeHtml(r.id)}">
+            <div class="review-item__head">
+              <div>
+                <div class="review-item__name">${escapeHtml(r.name || 'Клиент')}</div>
+                <div class="review-item__meta">${escapeHtml(r.tag || 'без тега')} · ${r.rating || 5}★</div>
+              </div>
+              <button class="delete-btn" type="button" data-delete="${escapeHtml(r.id)}">Удалить</button>
+            </div>
+            <p class="review-item__text">${escapeHtml(short)}</p>
+          </div>
+        `
+      }).join('')
+    }
+
+    async function refreshReviewList() {
+      currentReviews = await fetchReviewList()
+      renderReviewList(currentReviews)
+    }
+
+    async function deleteLocal(id, key) {
+      const res = await fetch('api/reviews/' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: { 'x-admin-key': key },
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Ошибка ' + res.status)
+    }
+
+    async function deleteViaGitHub(id, key) {
+      if (!key) throw new Error('Введите ключ администратора')
+      const headers = { Authorization: 'Bearer ' + key, Accept: 'application/vnd.github+json' }
+      const fileUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}`
+      const getRes = await fetch(fileUrl, { headers, cache: 'no-store' })
+      if (getRes.status === 401 || getRes.status === 403) throw new Error('Ключ не подошёл или нет прав.')
+      if (!getRes.ok) throw new Error('GitHub API: ' + getRes.status)
+      const file = await getRes.json()
+      let list = []
+      try { list = JSON.parse(b64DecodeUnicode(file.content)) } catch {}
+      if (!Array.isArray(list)) list = []
+      const next = list.filter((r) => String(r.id) !== String(id))
+      if (next.length === list.length) throw new Error('Отзыв не найден — обновите список.')
+      const putRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Delete review: ${id}`,
+          content: b64EncodeUnicode(JSON.stringify(next, null, 2)),
+          sha: file.sha,
+          branch: BRANCH,
+        }),
+      })
+      const result = await putRes.json().catch(() => ({}))
+      if (putRes.status === 409) throw new Error('Конфликт версий. Обновите страницу и попробуйте снова.')
+      if (!putRes.ok) throw new Error(result.message || 'GitHub API: ' + putRes.status)
+    }
+
+    reviewsList.addEventListener('click', async (e) => {
+      const button = e.target.closest('[data-delete]')
+      if (!button) return
+      const id = button.getAttribute('data-delete')
+      if (!confirm('Удалить этот отзыв?')) return
+      const key = keyInput.value.trim()
+      button.disabled = true
+      button.textContent = 'Удаляем…'
+      try {
+        if (isLocal) await deleteLocal(id, key)
+        else await deleteViaGitHub(id, key)
+        currentReviews = currentReviews.filter((r) => String(r.id) !== String(id))
+        renderReviewList(currentReviews)
+        msg.textContent = isLocal ? 'Отзыв удалён.' : 'Отзыв удалён из reviews.json. На сайте исчезнет в течение 1–5 минут.'
+        msg.className = 'msg ok'
+      } catch (err) {
+        msg.textContent = err.message || 'Не удалось удалить отзыв.'
+        msg.className = 'msg err'
+        button.disabled = false
+        button.textContent = 'Удалить'
+      }
+    })
+
+    refreshReviewList()
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
