@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Страница не найдена — BASHMAK PC</title>
+  <meta name="robots" content="noindex, follow" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Unbounded:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --orange: #ffa600; --muted: rgba(255,255,255,.64); }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(700px 420px at 50% 0%, rgba(255,166,0,.14), transparent 65%),
+        #050505;
+      color: #fff;
+      font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      text-align: center;
+      -webkit-text-size-adjust: 100%;
+    }
+    .wrap { max-width: 560px; }
+    .logo { width: 96px; height: auto; margin-bottom: 22px; }
+    .code {
+      font-family: "Unbounded", sans-serif;
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--orange);
+      margin: 0 0 10px;
+    }
+    h1 {
+      font-family: "Unbounded", sans-serif;
+      font-size: 22px;
+      letter-spacing: -.02em;
+      margin: 0 0 12px;
+    }
+    p { color: var(--muted); font-size: 15px; line-height: 1.65; margin: 0 0 26px; }
+    .btn {
+      display: inline-block;
+      padding: 14px 26px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ffc46b, var(--orange));
+      color: #0a0a0a;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .btn:hover, .btn:focus-visible { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255,166,0,.3); }
+    .btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
+      .btn:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="logo" src="assets/logo.png" width="550" height="384" alt="BASHMAK PC" />
+    <p class="code">404</p>
+    <h1>Такой страницы нет</h1>
+    <p>Возможно, ссылка устарела или в адресе опечатка. Вернитесь на главную — там тарифы и настройка ПК.</p>
+    <a class="btn" href="./">На главную</a>
+  </div>
+</body>
+</html>
