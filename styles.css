@@ -1268,17 +1268,38 @@ ul { margin: 0; padding: 0; list-style: none; }
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
 }
 
-/* 2px gradient border on price hover, with the glass fill preserved */
+/* Step panels use the same glass hover */
+.step.glass-card:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* The perf panel already had a decorative ::before; keep only the glass top line */
+.perf-card.glass-card::before {
+  width: auto;
+  border-radius: 0;
+}
+
+/* Smooth light-gold price hover */
+.price-card.glass-card {
+  transition:
+    transform .45s ease-in-out,
+    background-color .45s ease-in-out,
+    border-color .45s ease-in-out,
+    box-shadow .45s ease-in-out;
+}
+
 .price-card.glass-card:hover {
-  border-width: 2px;
-  border-color: transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)) padding-box,
-    linear-gradient(90deg, transparent, var(--orange), transparent) border-box;
+  transform: scale(1.03);
+  border-color: rgba(255, 196, 90, 0.8);
+  background-color: rgba(255, 214, 130, 0.38);
   box-shadow:
     0 24px 70px rgba(0, 0, 0, 0.35),
-    0 0 26px rgba(255, 196, 107, 0.22),
-    0 0 60px rgba(255, 176, 59, 0.1);
+    0 0 28px rgba(255, 196, 107, 0.35),
+    0 0 64px rgba(255, 176, 59, 0.15);
 }
 
 /* Review author link stays readable on the dark glass */
@@ -1339,4 +1360,13 @@ ul { margin: 0; padding: 0; list-style: none; }
 
   /* The marquee is an explicit part of the design: keep it running. */
   .marquee__track { animation: marquee 30s linear infinite !important; }
+
+  /* The gold price hover is an explicit part of the design: keep it smooth. */
+  .price-card.glass-card {
+    transition:
+      transform .45s ease-in-out,
+      background-color .45s ease-in-out,
+      border-color .45s ease-in-out,
+      box-shadow .45s ease-in-out !important;
+  }
 }
