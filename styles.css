@@ -316,11 +316,13 @@ ul { margin: 0; padding: 0; list-style: none; }
   align-items: center;
   gap: 64px;
   min-height: 100vh;
+  min-height: 100dvh;
   padding-top: calc(var(--header-h) + 60px);
   padding-bottom: 90px;
 }
 
 .hero h1 {
+  font-size: 4rem;
   font-size: clamp(2.9rem, 5.8vw, 5.2rem);
   line-height: 1.02;
   letter-spacing: -.04em;
@@ -435,6 +437,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .perf-number {
   display: inline-block;
   font-family: "Unbounded", sans-serif;
+  font-size: 3rem;
   font-size: clamp(2.6rem, 4vw, 3.4rem);
   font-weight: 800;
   line-height: 1;
@@ -613,6 +616,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 .section-heading { max-width: 720px; margin-bottom: 56px; }
 .section-heading h2 {
+  font-size: 2.6rem;
   font-size: clamp(2rem, 4vw, 3.4rem);
   letter-spacing: -.04em;
   margin-bottom: 18px;
@@ -966,6 +970,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 .cta-panel h2 {
+  font-size: 2.4rem;
   font-size: clamp(2rem, 4vw, 3.2rem);
   margin-bottom: 16px;
 }
