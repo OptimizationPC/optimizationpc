@@ -99,8 +99,24 @@ if ('IntersectionObserver' in window) {
   revealEls.forEach((el) => el.classList.add('is-visible'))
 }
 
-// --- Reviews: load from /api/reviews and render into #reviews-grid ---
+// --- Reviews: shared storage (GitHub) with local API / file fallbacks ---
 const reviewsGrid = document.getElementById('reviews-grid')
+const REVIEWS_REPO = 'OptimizationPC/optimizationpc'
+const REVIEWS_BRANCH = 'main'
+
+function safeReviewLink(raw) {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`
+  try {
+    const url = new URL(withScheme)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return ''
+    if (!url.hostname.includes('.')) return ''
+    return url.href
+  } catch {
+    return ''
+  }
+}
 
 async function loadReviews() {
   if (!reviewsGrid) return
@@ -113,65 +129,87 @@ async function loadReviews() {
     } catch { return '' }
   }
 
-  try {
-    // GitHub Pages (static): read reviews.json. Local server: prefer the live API.
-    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-    let list = null
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+  const parseList = (data) => (Array.isArray(data) ? data : null)
+  let list = null
 
-    if (isLocal) {
-      try {
-        const res = await fetch('api/reviews', { headers: { accept: 'application/json' } })
-        if (res.ok) {
-          const data = await res.json()
-          if (Array.isArray(data)) list = data
-        }
-      } catch {}
-    }
+  // Local development: the Node API is the source of truth.
+  if (isLocal) {
+    try {
+      const res = await fetch('api/reviews', { headers: { accept: 'application/json' }, cache: 'no-store' })
+      if (res.ok) list = parseList(await res.json())
+    } catch {}
+  }
 
-    if (list === null) {
-      try {
-        const res = await fetch('reviews.json', { cache: 'no-store' })
-        if (res.ok) list = await res.json()
-      } catch {}
-    }
+  // Production: read the shared reviews file straight from GitHub.
+  // The cache-buster makes a fresh review appear without waiting for a Pages rebuild.
+  if (list === null) {
+    try {
+      const res = await fetch(
+        `https://raw.githubusercontent.com/${REVIEWS_REPO}/${REVIEWS_BRANCH}/reviews.json?t=${Date.now()}`,
+        { cache: 'no-store', headers: { accept: 'application/json' } }
+      )
+      if (res.ok) list = parseList(await res.json())
+    } catch {}
+  }
 
-    if (!Array.isArray(list) || !list.length) {
-      reviewsGrid.innerHTML = '<p class="reviews-empty">Пока нет отзывов.</p>'
-      return
-    }
+  if (list === null) {
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${REVIEWS_REPO}/contents/reviews.json?ref=${REVIEWS_BRANCH}&t=${Date.now()}`,
+        { cache: 'no-store', headers: { accept: 'application/vnd.github.raw+json' } }
+      )
+      if (res.ok) list = parseList(await res.json())
+    } catch {}
+  }
 
-    reviewsGrid.innerHTML = list.map((r) => {
-      const stars = Array.from({ length: 5 }, (_, i) =>
-        `<span class="review-star${i < (r.rating || 5) ? ' is-filled' : ''}" aria-hidden="true">★</span>`
-      ).join('')
-      const dateStr = formatDate(r.date)
-      const tagHtml = r.tag ? `<span class="review-tag">${escapeHtml(r.tag)}</span>` : ''
-      const textHtml = escapeHtml(r.text || '').replace(/\n/g, '<br>')
+  // Last resort: the copy shipped with the site.
+  if (list === null) {
+    try {
+      const res = await fetch(`reviews.json?t=${Date.now()}`, { cache: 'no-store' })
+      if (res.ok) list = parseList(await res.json())
+    } catch {}
+  }
 
-      return `
-        <article class="review-card reveal">
-          <div class="review-header">
-            <span class="review-name">${escapeHtml(r.name || 'Клиент')}</span>
-            ${tagHtml}
-          </div>
-          <div class="review-stars" aria-label="Оценка: ${r.rating || 5} из 5">${stars}</div>
-          <p class="review-text">${textHtml}</p>
-          ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
-        </article>
-      `
-    }).join('')
+  if (!Array.isArray(list) || !list.length) {
+    reviewsGrid.innerHTML = '<p class="reviews-empty">Пока нет отзывов.</p>'
+    return
+  }
 
-    // Observe newly added review cards for reveal animation
-    if (revealObserver) {
-      reviewsGrid.querySelectorAll('.reveal:not(.is-visible)').forEach((el, i) => {
-        el.style.setProperty('--reveal-delay', `${Math.min(i * 60, 180)}ms`)
-        revealObserver.observe(el)
-      })
-    } else {
-      reviewsGrid.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'))
-    }
-  } catch {
-    reviewsGrid.innerHTML = '<p class="reviews-empty">Не удалось загрузить отзывы.</p>'
+  reviewsGrid.innerHTML = list.map((r) => {
+    const stars = Array.from({ length: 5 }, (_, i) =>
+      `<span class="review-star${i < (r.rating || 5) ? ' is-filled' : ''}" aria-hidden="true">★</span>`
+    ).join('')
+    const dateStr = formatDate(r.date)
+    const tagHtml = r.tag ? `<span class="review-tag">${escapeHtml(r.tag)}</span>` : ''
+    const textHtml = escapeHtml(r.text || '').replace(/\n/g, '<br>')
+    const link = safeReviewLink(r.link)
+    const name = escapeHtml(r.name || 'Клиент')
+    const nameHtml = link
+      ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${name}<span class="review-link-icon" aria-hidden="true">↗</span></a>`
+      : name
+
+    return `
+      <article class="review-card glass-card reveal">
+        <div class="review-header">
+          <span class="review-name">${nameHtml}</span>
+          ${tagHtml}
+        </div>
+        <div class="review-stars" aria-label="Оценка: ${r.rating || 5} из 5">${stars}</div>
+        <p class="review-text">${textHtml}</p>
+        ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
+      </article>
+    `
+  }).join('')
+
+  // Observe newly added review cards for reveal animation
+  if (revealObserver) {
+    reviewsGrid.querySelectorAll('.reveal:not(.is-visible)').forEach((el, i) => {
+      el.style.setProperty('--reveal-delay', `${Math.min(i * 60, 180)}ms`)
+      revealObserver.observe(el)
+    })
+  } else {
+    reviewsGrid.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'))
   }
 }
 
