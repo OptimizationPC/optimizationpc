@@ -64,7 +64,21 @@
     .msg { margin-top: 14px; font-size: 14px; text-align: center; min-height: 20px; line-height: 1.5; }
     .msg.ok { color: #6fddaa; } .msg.err { color: #ff6b6b; }
     .reviews-manage { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 20px; }
-    .reviews-manage h2 { font-family: "Unbounded", sans-serif; font-size: 15px; letter-spacing: -.02em; margin: 0 0 14px; }
+    .reviews-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .reviews-manage h2 { font-family: "Unbounded", sans-serif; font-size: 15px; letter-spacing: -.02em; margin: 0; }
+    .refresh-btn {
+      width: auto; min-height: 0; padding: 6px 12px; font-size: 12px; font-weight: 600;
+      border-radius: 8px; background: rgba(255,255,255,.06); color: var(--muted);
+      border: 1px solid var(--line); box-shadow: none; flex-shrink: 0;
+    }
+    .refresh-btn:hover { color: var(--white); border-color: rgba(255,166,0,.4); box-shadow: none; transform: none; }
+    .review-item__status { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+    .review-item__status.is-error { color: #ff8a8a; }
+    .review-item__status.is-ok { color: #6fddaa; }
+    .key-status { display: block; margin: -8px 0 16px; font-size: 12px; line-height: 1.45; min-height: 16px; }
+    .key-status.ok { color: #6fddaa; }
+    .key-status.err { color: #ff8a8a; }
+    .key-status.checking { color: var(--muted); }
     .reviews-list { display: flex; flex-direction: column; gap: 10px; }
     .review-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.04); }
     .review-item__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -91,6 +105,7 @@
     <form id="review-form">
       <label for="key">Ключ администратора</label>
       <input id="key" type="password" placeholder="Введите ключ" autocomplete="off" required />
+      <span class="key-status" id="key-status"></span>
 
       <label for="name">Имя клиента</label>
       <input id="name" type="text" placeholder="Например: Данил" maxlength="60" required />
@@ -123,7 +138,10 @@
     </form>
 
     <section class="reviews-manage">
-      <h2>Существующие отзывы</h2>
+      <div class="reviews-head">
+        <h2>Существующие отзывы</h2>
+        <button class="refresh-btn" type="button" id="refresh-btn">Обновить</button>
+      </div>
       <div class="reviews-list" id="reviews-list">
         <p class="reviews-empty">Загружаем…</p>
       </div>
@@ -233,11 +251,44 @@
     }
 
     const reviewsList = document.getElementById('reviews-list')
+    const refreshBtn = document.getElementById('refresh-btn')
+    const keyStatus = document.getElementById('key-status')
     let currentReviews = []
 
     const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]))
+
+    function showMessage(text, type) {
+      msg.textContent = text
+      msg.className = 'msg' + (type ? ' ' + type : '')
+      try { msg.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) } catch {}
+    }
+
+    function setKeyStatus(text, cls) {
+      keyStatus.textContent = text
+      keyStatus.className = 'key-status' + (cls ? ' ' + cls : '')
+    }
+
+    async function readGithubFile(key) {
+      const headers = key
+        ? { Authorization: 'Bearer ' + key, Accept: 'application/vnd.github+json' }
+        : { Accept: 'application/vnd.github+json' }
+      const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}&t=${Date.now()}`,
+        { headers, cache: 'no-store' }
+      )
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('Ключ не подошёл или у него нет прав Contents: Read and write.')
+      }
+      if (res.status === 404) throw new Error('Файл reviews.json не найден в репозитории.')
+      if (!res.ok) throw new Error('GitHub API: ' + res.status)
+      const file = await res.json()
+      let list = []
+      try { list = JSON.parse(b64DecodeUnicode(file.content || '')) } catch {}
+      if (!Array.isArray(list)) throw new Error('Не удалось прочитать reviews.json.')
+      return { file, list }
+    }
 
     async function fetchReviewList() {
       if (isLocal) {
@@ -287,6 +338,7 @@
               <button class="delete-btn" type="button" data-delete="${escapeHtml(r.id)}">Удалить</button>
             </div>
             <p class="review-item__text">${escapeHtml(short)}</p>
+            <p class="review-item__status" data-status hidden></p>
           </div>
         `
       }).join('')
@@ -303,25 +355,21 @@
         headers: { 'x-admin-key': key },
       })
       const data = await res.json().catch(() => ({}))
+      if (res.status === 401) throw new Error('Ключ не подошёл. Проверьте значение ADMIN_KEY.')
       if (!res.ok) throw new Error(data.error || 'Ошибка ' + res.status)
     }
 
     async function deleteViaGitHub(id, key) {
-      if (!key) throw new Error('Введите ключ администратора')
-      const headers = { Authorization: 'Bearer ' + key, Accept: 'application/vnd.github+json' }
-      const fileUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}`
-      const getRes = await fetch(fileUrl, { headers, cache: 'no-store' })
-      if (getRes.status === 401 || getRes.status === 403) throw new Error('Ключ не подошёл или нет прав.')
-      if (!getRes.ok) throw new Error('GitHub API: ' + getRes.status)
-      const file = await getRes.json()
-      let list = []
-      try { list = JSON.parse(b64DecodeUnicode(file.content)) } catch {}
-      if (!Array.isArray(list)) list = []
+      const { file, list } = await readGithubFile(key)
       const next = list.filter((r) => String(r.id) !== String(id))
-      if (next.length === list.length) throw new Error('Отзыв не найден — обновите список.')
+      if (next.length === list.length) throw new Error('Этого отзыва уже нет в reviews.json — обновите список.')
       const putRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json`, {
         method: 'PUT',
-        headers: { ...headers, 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: 'Bearer ' + key,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           message: `Delete review: ${id}`,
           content: b64EncodeUnicode(JSON.stringify(next, null, 2)),
@@ -330,34 +378,125 @@
         }),
       })
       const result = await putRes.json().catch(() => ({}))
-      if (putRes.status === 409) throw new Error('Конфликт версий. Обновите страницу и попробуйте снова.')
+      if (putRes.status === 409) throw new Error('Конфликт версий. Обновите список и попробуйте снова.')
+      if (putRes.status === 401 || putRes.status === 403) throw new Error('Нет прав на запись. Нужен токен с Contents: Read and write.')
       if (!putRes.ok) throw new Error(result.message || 'GitHub API: ' + putRes.status)
+    }
+
+    async function verifyKey() {
+      const key = keyInput.value.trim()
+      if (!key) { setKeyStatus('', ''); return }
+
+      if (isLocal) {
+        setKeyStatus('Проверяем ключ…', 'checking')
+        try {
+          const res = await fetch('api/verify', { headers: { 'x-admin-key': key }, cache: 'no-store' })
+          if (res.ok) setKeyStatus('Ключ принят. Можно добавлять и удалять отзывы.', 'ok')
+          else setKeyStatus('Ключ не подошёл.', 'err')
+        } catch {
+          setKeyStatus('Не удалось проверить ключ.', 'err')
+        }
+        return
+      }
+
+      setKeyStatus('Проверяем токен и права на запись…', 'checking')
+      try {
+        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}`, {
+          headers: { Authorization: 'Bearer ' + key, Accept: 'application/vnd.github+json' },
+          cache: 'no-store',
+        })
+        if (res.status === 401) {
+          setKeyStatus('GitHub не принял токен: он просрочен, отозван или скопирован с ошибкой.', 'err')
+          return
+        }
+        if (!res.ok) { setKeyStatus('GitHub API: ' + res.status, 'err'); return }
+        const repo = await res.json()
+        const p = repo.permissions || {}
+        if (p.push || p.admin || p.maintain) setKeyStatus('Токен принят, права на запись есть. Можно удалять.', 'ok')
+        else setKeyStatus('Токен принят, но прав на запись нет. Fine-grained: Contents → Read and write.', 'err')
+      } catch (err) {
+        setKeyStatus('Не удалось проверить токен: ' + (err.message || err), 'err')
+      }
     }
 
     reviewsList.addEventListener('click', async (e) => {
       const button = e.target.closest('[data-delete]')
       if (!button) return
       const id = button.getAttribute('data-delete')
-      if (!confirm('Удалить этот отзыв?')) return
+      const item = button.closest('.review-item')
+      const status = item && item.querySelector('[data-status]')
       const key = keyInput.value.trim()
+
+      if (!key) {
+        showMessage('Сначала введите ключ администратора в поле выше — без него удаление невозможно.', 'err')
+        keyInput.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        keyInput.focus()
+        return
+      }
+      if (!confirm('Удалить этот отзыв?')) return
+
       button.disabled = true
       button.textContent = 'Удаляем…'
+      if (status) {
+        status.hidden = false
+        status.className = 'review-item__status'
+        status.textContent = isLocal ? 'Отправляем запрос…' : 'Проверяем токен и удаляем…'
+      }
+
       try {
         if (isLocal) await deleteLocal(id, key)
         else await deleteViaGitHub(id, key)
-        currentReviews = currentReviews.filter((r) => String(r.id) !== String(id))
+
+        try { sessionStorage.setItem('bashmak-admin-key', key) } catch {}
+        showMessage(isLocal ? 'Отзыв удалён.' : 'Отзыв удалён из reviews.json. На сайте исчезнет в течение 1–5 минут.', 'ok')
+
+        // Show a fresh list straight from the source, not just a local filter.
+        let fresh = null
+        try {
+          fresh = isLocal ? await fetchReviewList() : (await readGithubFile(key)).list
+        } catch {}
+        currentReviews = Array.isArray(fresh) ? fresh : currentReviews.filter((r) => String(r.id) !== String(id))
         renderReviewList(currentReviews)
-        msg.textContent = isLocal ? 'Отзыв удалён.' : 'Отзыв удалён из reviews.json. На сайте исчезнет в течение 1–5 минут.'
-        msg.className = 'msg ok'
       } catch (err) {
-        msg.textContent = err.message || 'Не удалось удалить отзыв.'
-        msg.className = 'msg err'
+        const text = err.message || 'Не удалось удалить отзыв.'
+        showMessage(text, 'err')
+        if (status) {
+          status.hidden = false
+          status.className = 'review-item__status is-error'
+          status.textContent = text
+        }
         button.disabled = false
         button.textContent = 'Удалить'
       }
     })
 
+    refreshBtn.addEventListener('click', async () => {
+      refreshBtn.disabled = true
+      refreshBtn.textContent = 'Обновляем…'
+      try {
+        await refreshReviewList()
+        showMessage('Список отзывов обновлён.', 'ok')
+      } catch (err) {
+        showMessage(err.message || 'Не удалось обновить список.', 'err')
+      } finally {
+        refreshBtn.disabled = false
+        refreshBtn.textContent = 'Обновить'
+      }
+    })
+
+    // Keep the key across reloads in this tab and check it as soon as it is typed.
+    let keyTimer = null
+    keyInput.addEventListener('input', () => {
+      const value = keyInput.value.trim()
+      try { sessionStorage.setItem('bashmak-admin-key', value) } catch {}
+      setKeyStatus('', '')
+      clearTimeout(keyTimer)
+      if (value) keyTimer = setTimeout(verifyKey, 700)
+    })
+    keyInput.addEventListener('blur', verifyKey)
+
     refreshReviewList()
+    if (keyInput.value.trim()) setTimeout(verifyKey, 400)
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
