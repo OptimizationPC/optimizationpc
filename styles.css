@@ -748,16 +748,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   box-shadow: 0 30px 100px rgba(255, 140, 0, .12);
 }
 
-.price-card--featured::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--orange), transparent);
-}
-
 .popular-badge {
   position: absolute;
   top: -13px;
@@ -1140,9 +1130,8 @@ ul { margin: 0; padding: 0; list-style: none; }
 /* --- glass cards (requested style) --- */
 .glass-card {
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  border-radius: 20px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.1),
@@ -1153,24 +1142,30 @@ ul { margin: 0; padding: 0; list-style: none; }
   overflow: hidden;
 }
 
-/* Keep the floating chips and the featured badge outside the card edge */
+/* One border for the hero panel: the perf card itself */
 .hero__visual.glass-card {
-  padding: 10px;
-  border-radius: 20px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   overflow: visible;
 }
 
 .price-card.glass-card { overflow: visible; }
 
-/* The featured card has its own background/border/shadow rules; give it the same glass look */
+/* Standart card: gold tint at rest, not scaled */
 .price-card--featured.glass-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(255 202 0 / 11%);
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     inset 0 -1px 0 rgba(255, 255, 255, 0.1),
     inset 0 0 0px 0px rgba(255, 255, 255, 0);
+  transform: scale(1);
 }
 
 /* Keep the existing hover motion, but stay glassy */
@@ -1206,13 +1201,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 .price-card.glass-card:hover {
-  transform: scale(1.03);
-  border-color: rgba(255, 196, 90, 0.8);
-  background-color: rgba(255, 214, 130, 0.38);
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.35),
-    0 0 28px rgba(255, 196, 107, 0.35),
-    0 0 64px rgba(255, 176, 59, 0.15);
+  transform: scale(1.02);
+  background-color: rgb(255 202 0 / 11%);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35), 0 0 28px rgba(255, 196, 107, 0.35), 0 0 64px rgba(255, 176, 59, 0.15);
 }
 
 /* Review author link stays readable on the dark glass */
