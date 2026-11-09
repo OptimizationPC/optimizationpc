@@ -670,10 +670,13 @@ ul { margin: 0; padding: 0; list-style: none; }
   font-weight: 800;
   color: rgba(255, 255, 255, .05);
   letter-spacing: -.04em;
-  transition: color .2s ease;
+  transition: transform .2s ease-in-out, color .2s ease-in-out, background-color .2s ease-in-out, border-color .2s ease-in-out, box-shadow .2s ease-in-out !important;
 }
 
-.feature-card:hover .feature-num { color: #ffc46b; }
+.feature-card:hover .feature-num {
+  color: #ffc46b;
+  transform: scale(1.15);
+}
 
 .feature-icon {
   width: 52px;
@@ -927,7 +930,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   letter-spacing: -.04em;
   color: rgba(255, 166, 0, .22);
   margin-bottom: 16px;
-  transition: color .2s ease, text-shadow .2s ease;
+  transition: transform .2s ease-in-out, color .2s ease-in-out, text-shadow .2s ease-in-out, background-color .2s ease-in-out, border-color .2s ease-in-out, box-shadow .2s ease-in-out !important;
 }
 
 .step h3 { font-size: 18px; margin-bottom: 10px; }
