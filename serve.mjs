@@ -15,6 +15,7 @@ const mime = {
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
   '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
@@ -177,8 +178,15 @@ http.createServer(async (req, res) => {
   }
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      res.writeHead(404)
-      res.end('Not found')
+      fs.readFile(path.join(root, '404.html'), (notFoundErr, notFoundData) => {
+        if (notFoundErr) {
+          res.writeHead(404)
+          res.end('Not found')
+          return
+        }
+        res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' })
+        res.end(notFoundData)
+      })
       return
     }
     res.writeHead(200, { 'Content-Type': mime[path.extname(filePath).toLowerCase()] || 'application/octet-stream' })
