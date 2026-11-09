@@ -96,7 +96,7 @@
           </div>
         </div>
 
-        <div class="hero__visual reveal">
+        <div class="hero__visual glass-card reveal">
           <div class="perf-card" aria-label="Демонстрационная панель производительности">
             <div class="perf-card__top">
               <span class="panel-label">// system.session</span>
@@ -147,20 +147,24 @@
         </div>
       </section>
 
-      <div class="marquee" aria-hidden="true">
+      <div class="marquee glass-card" aria-hidden="true">
         <div class="marquee__track">
-          <span>Windows</span><i>✦</i>
-          <span>BIOS / UEFI</span><i>✦</i>
-          <span>Tweaks</span><i>✦</i>
-          <span>Input lag</span><i>✦</i>
-          <span>Cooling</span><i>✦</i>
-          <span>Stability</span><i>✦</i>
-          <span>Windows</span><i>✦</i>
-          <span>BIOS / UEFI</span><i>✦</i>
-          <span>Tweaks</span><i>✦</i>
-          <span>Input lag</span><i>✦</i>
-          <span>Cooling</span><i>✦</i>
-          <span>Stability</span><i>✦</i>
+          <div class="marquee__group">
+            <span>Windows</span><i>✦</i>
+            <span>BIOS / UEFI</span><i>✦</i>
+            <span>Tweaks</span><i>✦</i>
+            <span>Input lag</span><i>✦</i>
+            <span>Cooling</span><i>✦</i>
+            <span>Stability</span><i>✦</i>
+          </div>
+          <div class="marquee__group" aria-hidden="true">
+            <span>Windows</span><i>✦</i>
+            <span>BIOS / UEFI</span><i>✦</i>
+            <span>Tweaks</span><i>✦</i>
+            <span>Input lag</span><i>✦</i>
+            <span>Cooling</span><i>✦</i>
+            <span>Stability</span><i>✦</i>
+          </div>
         </div>
       </div>
 
@@ -176,7 +180,7 @@
           </div>
 
           <div class="features">
-            <article class="feature-card reveal">
+            <article class="feature-card glass-card reveal">
               <span class="feature-num" aria-hidden="true">01</span>
               <div class="feature-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -196,7 +200,7 @@
               </div>
             </article>
 
-            <article class="feature-card reveal">
+            <article class="feature-card glass-card reveal">
               <span class="feature-num" aria-hidden="true">02</span>
               <div class="feature-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -218,7 +222,7 @@
               </div>
             </article>
 
-            <article class="feature-card reveal">
+            <article class="feature-card glass-card reveal">
               <span class="feature-num" aria-hidden="true">03</span>
               <div class="feature-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -254,7 +258,7 @@
           </div>
 
           <div class="pricing-grid">
-            <article class="price-card reveal" id="bronze">
+            <article class="price-card glass-card reveal" id="bronze">
               <div class="price-card__top">
                 <span class="tier tier--bronze">
                   <span class="tier__emoji" aria-hidden="true">⭐</span> Bronze
@@ -286,7 +290,7 @@
               </a>
             </article>
 
-            <article class="price-card price-card--featured reveal" id="standart">
+            <article class="price-card price-card--featured glass-card reveal" id="standart">
               <span class="popular-badge">Популярный выбор</span>
               <div class="price-card__top">
                 <span class="tier tier--standart">
@@ -322,7 +326,7 @@
               </a>
             </article>
 
-            <article class="price-card reveal" id="platinum">
+            <article class="price-card glass-card reveal" id="platinum">
               <div class="price-card__top">
                 <span class="tier tier--platinum">
                   <span class="tier__emoji" aria-hidden="true">💫</span> Platinum
@@ -428,7 +432,7 @@
               Напиши в Telegram — обсудим железо, задачи и подходящий тариф.
             </p>
             <a class="btn btn--primary btn--large" href="https://t.me/solo_bashmak" target="_blank" rel="noopener noreferrer">
-              Написать @solo_bashmak
+              Настроить PC
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
@@ -467,6 +471,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=2"></script>
+  <script type="module" src="app.js?v=3"></script>
 </body>
 </html>
