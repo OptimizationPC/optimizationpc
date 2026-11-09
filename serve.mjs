@@ -117,10 +117,11 @@ async function handleApi(req, res, url) {
     return sendJson(res, 201, review)
   }
 
-  const match = pathname.match(/^\/api\/reviews\/([a-z0-9]+)$/i)
+  const match = pathname.match(/^\/api\/reviews\/([^/]+)$/)
   if (match) {
+    const id = decodeURIComponent(match[1])
     const reviews = readReviews()
-    const idx = reviews.findIndex((r) => r.id === match[1])
+    const idx = reviews.findIndex((r) => String(r.id) === id)
 
     if (req.method === 'GET') {
       if (idx === -1) return sendJson(res, 404, { error: 'Отзыв не найден' })
