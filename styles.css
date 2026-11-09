@@ -722,23 +722,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   transition: transform .45s ease-in-out, border-color .45s ease-in-out, box-shadow .45s ease-in-out;
 }
 
-/* Gradient border (2px) shown on hover */
-.price-card::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: calc(var(--radius-lg) + 1px);
-  padding: 2px;
-  background: linear-gradient(90deg, transparent, var(--orange), transparent);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity .45s ease-in-out;
-  pointer-events: none;
-}
-
 .price-card:hover {
   transform: scale(1.02);
   border-color: transparent;
@@ -748,8 +731,6 @@ ul { margin: 0; padding: 0; list-style: none; }
     0 0 26px rgba(255, 196, 107, .16),
     0 0 60px rgba(255, 176, 59, .07);
 }
-
-.price-card:hover::after { opacity: 1; }
 
 .price-card--featured:hover {
   border-color: transparent;
@@ -1172,38 +1153,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   overflow: hidden;
 }
 
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  opacity: 1;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.8),
-    transparent
-  );
-}
-
-.glass-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 100%;
-  opacity: 1;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.8),
-    transparent,
-    rgba(255, 255, 255, 0.3)
-  );
-}
-
 /* Keep the floating chips and the featured badge outside the card edge */
 .hero__visual.glass-card {
   padding: 10px;
@@ -1222,36 +1171,6 @@ ul { margin: 0; padding: 0; list-style: none; }
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     inset 0 -1px 0 rgba(255, 255, 255, 0.1),
     inset 0 0 0px 0px rgba(255, 255, 255, 0);
-}
-
-/* Featured card's old orange top line -> glass top line */
-.price-card--featured.glass-card::before {
-  height: 1px;
-  opacity: 1;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.8),
-    transparent
-  );
-}
-
-/* Price cards used ::after for a masked gradient border; restore the glass left line */
-.price-card.glass-card::after {
-  inset: 0 auto auto 0;
-  width: 1px;
-  height: 100%;
-  padding: 0;
-  border-radius: 0;
-  -webkit-mask: none;
-  mask: none;
-  opacity: 1;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.8),
-    transparent,
-    rgba(255, 255, 255, 0.3)
-  );
 }
 
 /* Keep the existing hover motion, but stay glassy */
@@ -1275,12 +1194,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   box-shadow:
     0 18px 50px rgba(0, 0, 0, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
-}
-
-/* The perf panel already had a decorative ::before; keep only the glass top line */
-.perf-card.glass-card::before {
-  width: auto;
-  border-radius: 0;
 }
 
 /* Smooth light-gold price hover */
