@@ -28,14 +28,23 @@
       padding: 24px;
     }
     .admin-panel {
-      width: 100%; max-width: 560px;
+      width: 100%; max-width: 580px;
       background: var(--card); border: 1px solid var(--line);
       border-radius: var(--radius); padding: 32px;
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     }
     h1 { font-family: "Unbounded", sans-serif; font-size: 22px; margin: 0 0 8px; letter-spacing: -.03em; }
-    p.sub { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+    p.sub { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+    .hint {
+      margin: 0 0 24px; padding: 12px 14px;
+      border: 1px solid rgba(255,166,0,.22); border-radius: 10px;
+      background: rgba(255,166,0,.06); color: var(--muted);
+      font-size: 12.5px; line-height: 1.55;
+    }
+    .hint strong { color: var(--orange); }
+    .hint code { color: var(--orange); }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+    label .opt { font-weight: 500; color: rgba(255,255,255,.38); }
     input, select, textarea {
       width: 100%; padding: 12px 14px; margin-bottom: 16px;
       background: rgba(255,255,255,.06); border: 1px solid var(--line);
@@ -52,7 +61,7 @@
     }
     button:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255,166,0,.3); }
     button:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
-    .msg { margin-top: 14px; font-size: 14px; text-align: center; min-height: 20px; }
+    .msg { margin-top: 14px; font-size: 14px; text-align: center; min-height: 20px; line-height: 1.5; }
     .msg.ok { color: #6fddaa; } .msg.err { color: #ff6b6b; }
     a.back { display: inline-block; margin-top: 18px; color: var(--muted); font-size: 13px; text-decoration: none; }
     a.back:hover { color: var(--orange); }
@@ -61,14 +70,18 @@
 <body>
   <div class="admin-panel">
     <h1>Добавить отзыв</h1>
-    <p class="sub">Ключ проверяется сервером — панель работает, пока запущен <code>node serve.mjs</code>. После добавления отзыва на локальном сервере обнови <code>reviews.json</code> в репозитории для GitHub Pages.</p>
+    <p class="sub">Отзыв попадёт в общий файл <code>reviews.json</code> и станет виден всем посетителям сайта.</p>
+    <div class="hint" id="mode-hint"></div>
 
     <form id="review-form">
       <label for="key">Ключ администратора</label>
-      <input id="key" type="password" placeholder="bashmak-admin" autocomplete="off" required />
+      <input id="key" type="password" placeholder="Введите ключ" autocomplete="off" required />
 
       <label for="name">Имя клиента</label>
       <input id="name" type="text" placeholder="Например: Данил" maxlength="60" required />
+
+      <label for="link">Ссылка на ВК или Telegram <span class="opt">(необязательно)</span></label>
+      <input id="link" type="url" placeholder="https://vk.com/... или https://t.me/..." maxlength="300" />
 
       <label for="tag">Тариф / пакет</label>
       <select id="tag">
@@ -94,13 +107,108 @@
       <div class="msg" id="msg"></div>
     </form>
 
-    <a class="back" href="/">← Вернуться на сайт</a>
+    <a class="back" href="index.html">← Вернуться на сайт</a>
   </div>
 
   <script>
+    const OWNER = 'OptimizationPC'
+    const REPO = 'optimizationpc'
+    const BRANCH = 'main'
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+
     const form = document.getElementById('review-form')
     const msg = document.getElementById('msg')
     const btn = document.getElementById('submit-btn')
+    const keyInput = document.getElementById('key')
+    const hint = document.getElementById('mode-hint')
+
+    if (isLocal) {
+      hint.innerHTML = '<strong>Локальный режим.</strong> Ключ администратора — пароль сервера. По умолчанию: <code>bashmak-admin</code> (меняется переменной окружения <code>ADMIN_KEY</code>). Отзыв сохраняется в <code>reviews.json</code> и сразу виден на localhost.'
+      keyInput.placeholder = 'bashmak-admin'
+    } else {
+      hint.innerHTML = '<strong>Рабочий сайт.</strong> Ключ администратора — ваш личный GitHub-токен (fine-grained, доступ только к репозиторию <code>optimizationpc</code>, право <strong>Contents: Read and write</strong>). Токен не хранится на сайте: он отправляется только в <code>api.github.com</code> и остаётся в этой вкладке.'
+      keyInput.placeholder = 'github_pat_...'
+    }
+
+    // Token is kept only for the current browser tab session.
+    try { keyInput.value = sessionStorage.getItem('bashmak-admin-key') || '' } catch {}
+
+    function b64EncodeUnicode(str) {
+      return btoa(unescape(encodeURIComponent(str)))
+    }
+    function b64DecodeUnicode(str) {
+      return decodeURIComponent(escape(atob(String(str).replace(/\s/g, ''))))
+    }
+
+    function normalizeLink(raw) {
+      const value = String(raw || '').trim()
+      if (!value) return ''
+      const withScheme = /^https?:\/\//i.test(value) ? value : 'https://' + value
+      try {
+        const url = new URL(withScheme)
+        if (!url.hostname.includes('.')) return ''
+        return url.href
+      } catch {
+        return ''
+      }
+    }
+
+    async function addViaLocal(payload) {
+      const res = await fetch('api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': payload.key },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Ошибка ' + res.status)
+      return data
+    }
+
+    async function addViaGitHub(payload) {
+      if (!payload.key) throw new Error('Введите ключ администратора')
+      const headers = {
+        Authorization: 'Bearer ' + payload.key,
+        Accept: 'application/vnd.github+json',
+      }
+      const fileUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}`
+
+      const getRes = await fetch(fileUrl, { headers, cache: 'no-store' })
+      if (getRes.status === 401 || getRes.status === 403) {
+        throw new Error('Ключ не подошёл или нет прав. Нужен fine-grained токен с Contents: Read and write.')
+      }
+      if (!getRes.ok) throw new Error('GitHub API: ' + getRes.status)
+      const file = await getRes.json()
+
+      let list = []
+      try { list = JSON.parse(b64DecodeUnicode(file.content)) } catch {}
+      if (!Array.isArray(list)) list = []
+
+      const review = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        name: payload.name,
+        link: payload.link,
+        tag: payload.tag,
+        rating: payload.rating,
+        text: payload.text,
+        date: new Date().toISOString(),
+      }
+      list.push(review)
+
+      const putRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Add review: ${payload.name}`,
+          content: b64EncodeUnicode(JSON.stringify(list, null, 2)),
+          sha: file.sha,
+          branch: BRANCH,
+        }),
+      })
+      const result = await putRes.json().catch(() => ({}))
+      if (putRes.status === 409) throw new Error('Конфликт версий. Обновите страницу и отправьте отзыв ещё раз.')
+      if (!putRes.ok) throw new Error(result.message || 'GitHub API: ' + putRes.status)
+      return review
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
@@ -109,35 +217,41 @@
       btn.disabled = true
       btn.textContent = 'Сохраняем…'
 
+      const key = keyInput.value.trim()
+      const rawLink = document.getElementById('link').value.trim()
+      const link = normalizeLink(rawLink)
+      if (rawLink && !link) {
+        msg.textContent = 'Ссылка выглядит некорректно. Укажите адрес вида https://vk.com/... или https://t.me/...'
+        msg.classList.add('err')
+        btn.disabled = false
+        btn.textContent = 'Сохранить отзыв'
+        return
+      }
+
       const payload = {
-        key: document.getElementById('key').value.trim(),
+        key,
         name: document.getElementById('name').value.trim(),
+        link,
         tag: document.getElementById('tag').value,
         rating: Number(document.getElementById('rating').value),
         text: document.getElementById('text').value.trim(),
       }
 
       try {
-        const res = await fetch('api/reviews', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-key': payload.key,
-          },
-          body: JSON.stringify(payload),
-        })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok) {
-          msg.textContent = data.error || 'Ошибка ' + res.status
-          msg.classList.add('err')
-        } else {
-          msg.textContent = 'Отзыв добавлен!'
-          msg.classList.add('ok')
-          document.getElementById('name').value = ''
-          document.getElementById('text').value = ''
-        }
+        if (isLocal) await addViaLocal(payload)
+        else await addViaGitHub(payload)
+
+        try { sessionStorage.setItem('bashmak-admin-key', key) } catch {}
+
+        msg.textContent = isLocal
+          ? 'Отзыв добавлен! Он уже виден на локальном сайте.'
+          : 'Отзыв отправлен в общий reviews.json. На сайте он появится в течение 1–5 минут.'
+        msg.classList.add('ok')
+        document.getElementById('name').value = ''
+        document.getElementById('link').value = ''
+        document.getElementById('text').value = ''
       } catch (err) {
-        msg.textContent = 'Не удалось связаться с сервером.'
+        msg.textContent = err.message || 'Не удалось сохранить отзыв.'
         msg.classList.add('err')
       } finally {
         btn.disabled = false
