@@ -670,7 +670,10 @@ ul { margin: 0; padding: 0; list-style: none; }
   font-weight: 800;
   color: rgba(255, 255, 255, .05);
   letter-spacing: -.04em;
+  transition: color .2s ease;
 }
+
+.feature-card:hover .feature-num { color: #ffc46b; }
 
 .feature-icon {
   width: 52px;
@@ -912,7 +915,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .step:hover::before { opacity: 1; }
 .step:hover .step__num {
-  color: rgba(255, 166, 0, .85);
+  color: #ffc46b;
   text-shadow: 0 0 26px rgba(255, 166, 0, .45);
 }
 
@@ -924,7 +927,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   letter-spacing: -.04em;
   color: rgba(255, 166, 0, .22);
   margin-bottom: 16px;
-  transition: color .45s ease, text-shadow .45s ease;
+  transition: color .2s ease, text-shadow .2s ease;
 }
 
 .step h3 { font-size: 18px; margin-bottom: 10px; }
@@ -1201,7 +1204,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 .price-card.glass-card:hover {
-  transform: scale(1.02);
+  transform: scale(1.01);
   background-color: rgb(255 202 0 / 11%);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35), 0 0 28px rgba(255, 196, 107, 0.35), 0 0 64px rgba(255, 176, 59, 0.15);
 }
@@ -1268,9 +1271,9 @@ ul { margin: 0; padding: 0; list-style: none; }
   /* The gold price hover is an explicit part of the design: keep it smooth. */
   .price-card.glass-card {
     transition:
-      transform .45s ease-in-out,
-      background-color .45s ease-in-out,
-      border-color .45s ease-in-out,
-      box-shadow .45s ease-in-out !important;
+      transform .2s ease-in-out,
+      background-color .2s ease-in-out,
+      border-color .2s ease-in-out,
+      box-shadow .2s ease-in-out !important;
   }
 }
