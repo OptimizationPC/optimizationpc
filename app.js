@@ -118,6 +118,22 @@ function safeReviewLink(raw) {
   }
 }
 
+// Recognise the social network in a review link and show its icon.
+const SOCIAL_ICONS = {
+  telegram: '<svg class="review-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
+  vk: '<svg class="review-link-icon" viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="16" text-anchor="middle" font-family="Unbounded, Manrope, sans-serif" font-size="9" font-weight="800" fill="currentColor">VK</text></svg>',
+  external: '<svg class="review-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>',
+}
+
+function socialNetworkOf(link) {
+  try {
+    const host = new URL(link).hostname.toLowerCase().replace(/^www\./, '')
+    if (host === 't.me' || host === 'telegram.me' || host === 'telegram.dog' || host.endsWith('.telegram.me')) return 'telegram'
+    if (host === 'vk.com' || host.endsWith('.vk.com') || host === 'vk.me' || host.endsWith('.vk.me') || host === 'vkontakte.ru' || host.endsWith('.vkontakte.ru')) return 'vk'
+  } catch {}
+  return ''
+}
+
 async function loadReviews() {
   if (!reviewsGrid) return
   const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -177,25 +193,29 @@ async function loadReviews() {
   }
 
   reviewsGrid.innerHTML = list.map((r) => {
+    const rating = Math.min(5, Math.max(1, parseInt(r.rating, 10) || 5))
     const stars = Array.from({ length: 5 }, (_, i) =>
-      `<span class="review-star${i < (r.rating || 5) ? ' is-filled' : ''}" aria-hidden="true">★</span>`
+      `<span class="review-star${i < rating ? ' is-filled' : ''}" aria-hidden="true">★</span>`
     ).join('')
     const dateStr = formatDate(r.date)
     const tagHtml = r.tag ? `<span class="review-tag">${escapeHtml(r.tag)}</span>` : ''
     const textHtml = escapeHtml(r.text || '').replace(/\n/g, '<br>')
     const link = safeReviewLink(r.link)
     const name = escapeHtml(r.name || 'Клиент')
+    const icon = socialNetworkOf(link)
     const nameHtml = link
-      ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${name}<span class="review-link-icon" aria-hidden="true">↗</span></a>`
+      ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${name}${SOCIAL_ICONS[icon] || SOCIAL_ICONS.external}</a>`
       : name
 
     return `
       <article class="review-card glass-card reveal">
         <div class="review-header">
           <span class="review-name">${nameHtml}</span>
-          ${tagHtml}
+          <div class="review-meta">
+            <div class="review-stars" aria-label="Оценка: ${rating} из 5">${stars}</div>
+            ${tagHtml}
+          </div>
         </div>
-        <div class="review-stars" aria-label="Оценка: ${r.rating || 5} из 5">${stars}</div>
         <p class="review-text">${textHtml}</p>
         ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
       </article>
