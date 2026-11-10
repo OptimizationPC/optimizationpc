@@ -570,9 +570,20 @@ ul { margin: 0; padding: 0; list-style: none; }
   overflow: hidden;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
+  border-left: 0;
+  border-right: 0;
   background: rgba(5, 5, 5, .55);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+/* The marquee is a full-width strip: no glass frame on the sides */
+.marquee.glass-card {
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+  background: rgba(5, 5, 5, .55);
+  box-shadow: none;
 }
 
 .marquee__track {
@@ -730,24 +741,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   transition: transform .45s ease-in-out, border-color .45s ease-in-out, box-shadow .45s ease-in-out;
-}
-
-.price-card:hover {
-  transform: scale(1.02);
-  border-color: transparent;
-  z-index: 1;
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, .45),
-    0 0 26px rgba(255, 196, 107, .16),
-    0 0 60px rgba(255, 176, 59, .07);
-}
-
-.price-card--featured:hover {
-  border-color: transparent;
-  box-shadow:
-    0 30px 90px rgba(0, 0, 0, .5),
-    0 0 34px rgba(255, 196, 107, .26),
-    0 0 80px rgba(255, 176, 59, .10);
 }
 
 .price-card--featured {
@@ -1232,19 +1225,61 @@ ul { margin: 0; padding: 0; list-style: none; }
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-/* Smooth light-gold price hover */
+/* Price cards: gold lift on hover */
 .price-card.glass-card {
   transition:
-    transform .45s ease-in-out,
-    background-color .45s ease-in-out,
-    border-color .45s ease-in-out,
-    box-shadow .45s ease-in-out;
+    transform .4s cubic-bezier(.22, .8, .26, 1),
+    background-color .4s ease,
+    border-color .4s ease,
+    box-shadow .4s ease;
 }
 
-.price-card.glass-card:hover {
-  transform: scale(1.01);
+.price-card .price,
+.price-card .tier,
+.price-card .btn--card {
+  transition:
+    transform .4s cubic-bezier(.22, .8, .26, 1),
+    color .4s ease,
+    background .4s ease,
+    border-color .4s ease,
+    box-shadow .4s ease;
+}
+
+.price-card.glass-card:hover,
+.price-card.glass-card:focus-within {
+  transform: translateY(-8px) scale(1.02);
   background-color: rgb(255 202 0 / 11%);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35), 0 0 28px rgba(255, 196, 107, 0.35), 0 0 64px rgba(255, 176, 59, 0.15);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, .45),
+    0 0 0 1px rgba(255, 196, 107, .55),
+    0 0 34px rgba(255, 196, 107, .28),
+    0 0 80px rgba(255, 176, 59, .12);
+}
+
+.price-card.glass-card:hover .price {
+  transform: scale(1.06);
+  color: var(--orange-bright);
+}
+
+.price-card.glass-card:hover .tier {
+  transform: translateY(-2px);
+  border-color: rgba(255, 196, 107, .55);
+  box-shadow: 0 6px 18px rgba(255, 166, 0, .18);
+}
+
+.price-card.glass-card:hover .btn--card {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(255, 166, 0, .28);
+}
+
+/* Featured keeps its gold tint but reacts the same way */
+.price-card--featured.glass-card:hover,
+.price-card--featured.glass-card:focus-within {
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, .5),
+    0 0 0 1px rgba(255, 206, 120, .7),
+    0 0 40px rgba(255, 196, 107, .32),
+    0 0 90px rgba(255, 176, 59, .14);
 }
 
 /* Review author link stays readable on the dark glass */
@@ -1279,6 +1314,35 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 @media (max-width: 860px) {
+  :root { --header-h: 60px; }
+
+  /* Header becomes a compact floating block instead of a full-width bar */
+  .site-header {
+    top: 8px;
+    left: 10px;
+    right: 10px;
+    height: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, .10);
+    background: rgba(8, 8, 10, .86);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .38);
+  }
+  .site-header.is-scrolled {
+    background: rgba(8, 8, 10, .94);
+    border-bottom-color: rgba(255, 255, 255, .10);
+  }
+  .site-header .container { padding: 0 12px; }
+  .header-inner { height: var(--header-h); gap: 12px; }
+
+  .brand { gap: 10px; }
+  .brand__logo { height: 30px; }
+  .brand__name { font-size: 12px; letter-spacing: .08em; }
+  .brand__sub { font-size: 8px; letter-spacing: .16em; }
+
+  .header-cta { padding: 9px 12px; }
+  .header-cta svg { width: 16px; height: 16px; }
+  .header-cta__text { display: none; }
+
   .nav { display: none; }
   .section { padding: 40px 0; }
   .cta-panel { padding: 48px 28px; }
@@ -1291,8 +1355,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 @media (max-width: 560px) {
   .container { padding: 0 18px; }
   .review-card { flex-basis: 85vw; }
-  .brand__logo { height: 34px; }
-  .brand__name { font-size: 13px; }
+  .brand__logo { height: 26px; }
+  .brand__name { font-size: 11px; }
+  .brand__sub { font-size: 7px; }
+  .hero { padding-top: calc(var(--header-h) + 34px); }
   .hero__lead { font-size: 16px; }
   .hero__stats { gap: 24px; }
   .btn { width: 100%; }
@@ -1321,4 +1387,11 @@ ul { margin: 0; padding: 0; list-style: none; }
       border-color .2s ease-in-out,
       box-shadow .2s ease-in-out !important;
   }
+  .price-card .price,
+  .price-card .tier,
+  .price-card .btn--card { transition: none !important; }
+  .price-card.glass-card:hover { transform: none; }
+  .price-card.glass-card:hover .price,
+  .price-card.glass-card:hover .tier,
+  .price-card.glass-card:hover .btn--card { transform: none; }
 }
