@@ -8,6 +8,7 @@ const root = __dirname
 const port = Number(process.env.PORT || 8080)
 const ADMIN_KEY = process.env.ADMIN_KEY || 'bashmak-admin'
 const DATA_FILE = path.join(root, 'reviews.json')
+const PHOTOS_DIR = path.join(root, 'photos')
 
 const mime = {
   '.html': 'text/html; charset=utf-8',
