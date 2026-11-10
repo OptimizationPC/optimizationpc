@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Панель — BASHMAK PC</title>
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #050505;
+      --orange: #ffa600;
+      --white: #ffffff;
+      --muted: rgba(255,255,255,.64);
+      --line: rgba(255,255,255,.08);
+      --card: rgba(10,10,12,.72);
+      --radius: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background: var(--black); color: var(--white);
+      font-family: "Manrope", system-ui, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .admin-panel {
+      width: 100%; max-width: 580px;
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 32px;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    }
+    h1 { font-family: "Unbounded", sans-serif; font-size: 22px; margin: 0 0 8px; letter-spacing: -.03em; }
+    p.sub { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+    .hint {
+      margin: 0 0 24px; padding: 12px 14px;
+      border: 1px solid rgba(255,166,0,.22); border-radius: 10px;
+      background: rgba(255,166,0,.06); color: var(--muted);
+      font-size: 12.5px; line-height: 1.55;
+    }
+    .hint strong { color: var(--orange); }
+    .hint code { color: var(--orange); }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+    label .opt { font-weight: 500; color: rgba(255,255,255,.38); }
+    input, select, textarea {
+      width: 100%; padding: 12px 14px; margin-bottom: 16px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--line);
+      border-radius: 10px; color: var(--white); font-family: inherit; font-size: 15px;
+      transition: border-color .2s ease;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--orange); }
+    textarea { resize: vertical; min-height: 90px; }
+    button {
+      width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer;
+      background: linear-gradient(135deg, #ffc46b, var(--orange)); color: #0a0a0a;
+      font-family: inherit; font-size: 15px; font-weight: 700;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255,166,0,.3); }
+    button:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .msg { margin-top: 14px; font-size: 14px; text-align: center; min-height: 20px; line-height: 1.5; }
+    .msg.ok { color: #6fddaa; } .msg.err { color: #ff6b6b; }
+    .reviews-manage { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 20px; }
+    .reviews-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .reviews-manage h2 { font-family: "Unbounded", sans-serif; font-size: 15px; letter-spacing: -.02em; margin: 0; }
+    .refresh-btn {
+      width: auto; min-height: 0; padding: 6px 12px; font-size: 12px; font-weight: 600;
+      border-radius: 8px; background: rgba(255,255,255,.06); color: var(--muted);
+      border: 1px solid var(--line); box-shadow: none; flex-shrink: 0;
+    }
+    .refresh-btn:hover { color: var(--white); border-color: rgba(255,166,0,.4); box-shadow: none; transform: none; }
+    .review-item__status { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+    .review-item__status.is-error { color: #ff8a8a; }
+    .review-item__status.is-ok { color: #6fddaa; }
+    .key-status { display: block; margin: -8px 0 16px; font-size: 12px; line-height: 1.45; min-height: 16px; }
+    .key-status.ok { color: #6fddaa; }
+    .key-status.err { color: #ff8a8a; }
+    .key-status.checking { color: var(--muted); }
+    .reviews-list { display: flex; flex-direction: column; gap: 10px; }
+    .review-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.04); }
+    .review-item__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .review-item__name { font-size: 14px; font-weight: 700; }
+    .review-item__meta { color: var(--muted); font-size: 12px; }
+    .review-item__text { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.5; }
+    .delete-btn {
+      width: auto; min-height: 0; padding: 6px 12px; font-size: 12px; border-radius: 8px;
+      background: rgba(255,80,80,.12); color: #ff8a8a; border: 1px solid rgba(255,80,80,.35);
+      flex-shrink: 0;
+    }
+    .delete-btn:hover { background: rgba(255,80,80,.22); box-shadow: none; transform: none; }
+    .reviews-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+    input[type="file"] { padding: 10px 12px; font-size: 13px; cursor: pointer; }
+    input[type="file"]::file-selector-button {
+      margin-right: 12px; padding: 8px 14px; border: 0; border-radius: 8px; cursor: pointer;
+      background: rgba(255,166,0,.16); color: var(--orange); font-family: inherit; font-size: 13px; font-weight: 700;
+    }
+    input[type="file"]::file-selector-button:hover { background: rgba(255,166,0,.26); }
+    .photo-preview { display: flex; align-items: center; gap: 12px; margin: -6px 0 18px; }
+    .photo-preview img {
+      width: 72px; height: 72px; object-fit: cover; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04);
+    }
+    .photo-clear {
+      width: auto; min-height: 0; padding: 6px 12px; font-size: 12px; border-radius: 8px;
+      background: rgba(255,80,80,.12); color: #ff8a8a; border: 1px solid rgba(255,80,80,.35);
+      box-shadow: none;
+    }
+    .photo-clear:hover { background: rgba(255,80,80,.22); box-shadow: none; transform: none; }
+    .review-item__photo { margin-top: 10px; }
+    .review-item__photo img {
+      width: 76px; height: 76px; object-fit: cover; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .review-item__actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    a.back { display: inline-block; margin-top: 18px; color: var(--muted); font-size: 13px; text-decoration: none; }
+    a.back:hover { color: var(--orange); }
+  </style>
+</head>
+<body>
+  <div class="admin-panel">
+    <h1>Добавить отзыв</h1>
+    <p class="sub">Отзыв попадёт в общий файл <code>reviews.json</code> и станет виден всем посетителям сайта.</p>
+    <div class="hint" id="mode-hint"></div>
+
+    <form id="review-form">
+      <label for="key">Ключ администратора</label>
+      <input id="key" type="password" placeholder="Введите ключ" autocomplete="off" required />
+      <span class="key-status" id="key-status"></span>
+
+      <label for="name">Имя клиента</label>
+      <input id="name" type="text" placeholder="Например: Данил" maxlength="60" required />
+
+      <label for="link">Ссылка на ВК или Telegram <span class="opt">(необязательно)</span></label>
+      <input id="link" type="text" inputmode="url" placeholder="https://vk.com/... или https://t.me/..." maxlength="300" />
+
+      <label for="tag">Тариф / пакет</label>
+      <select id="tag">
+        <option value="">— без тега —</option>
+        <option value="Bronze">Bronze</option>
+        <option value="Standart">Standart</option>
+        <option value="Platinum">Platinum</option>
+      </select>
+
+      <label for="rating">Оценка (1–5)</label>
+      <select id="rating">
+        <option value="5">5 ★★★★★</option>
+        <option value="4">4 ★★★★</option>
+        <option value="3">3 ★★★</option>
+        <option value="2">2 ★★</option>
+        <option value="1">1 ★</option>
+      </select>
+
+      <label for="text">Отзыв</label>
+      <textarea id="text" placeholder="Что именно понравилось, какой результат…" maxlength="600" required></textarea>
+
+      <label for="photo">Фото <span class="opt">(необязательно)</span></label>
+      <input id="photo" type="file" accept="image/png,image/jpeg,image/webp" />
+      <div class="photo-preview" id="photo-preview" hidden>
+        <img id="photo-preview-img" alt="Предпросмотр фото" />
+        <button class="photo-clear" type="button" id="photo-clear">Убрать</button>
+      </div>
+
+      <button type="submit" id="submit-btn">Сохранить отзыв</button>
+      <div class="msg" id="msg"></div>
+    </form>
+
+    <section class="reviews-manage">
+      <div class="reviews-head">
+        <h2>Существующие отзывы</h2>
+        <button class="refresh-btn" type="button" id="refresh-btn">Обновить</button>
+      </div>
+      <div class="reviews-list" id="reviews-list">
+        <p class="reviews-empty">Загружаем…</p>
+      </div>
+    </section>
+
+    <a class="back" href="index.html">← Вернуться на сайт</a>
+  </div>
+
+  <script>
+    const OWNER = 'OptimizationPC'
+    const REPO = 'optimizationpc'
+    const BRANCH = 'main'
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+
+    const form = document.getElementById('review-form')
+    const msg = document.getElementById('msg')
+    const btn = document.getElementById('submit-btn')
+    const keyInput = document.getElementById('key')
+    const hint = document.getElementById('mode-hint')
+
+    if (isLocal) {
+      hint.innerHTML = '<strong>Локальный режим.</strong> Ключ администратора — пароль сервера. По умолчанию: <code>bashmak-admin</code> (меняется переменной окружения <code>ADMIN_KEY</code>). Отзыв сохраняется в <code>reviews.json</code> и сразу виден на localhost.'
+      keyInput.placeholder = 'bashmak-admin'
+    } else {
+      hint.innerHTML = '<strong>Рабочий сайт.</strong> Ключ администратора — ваш личный GitHub-токен (fine-grained, доступ только к репозиторию <code>optimizationpc</code>, право <strong>Contents: Read and write</strong>). Токен не хранится на сайте: он отправляется только в <code>api.github.com</code> и остаётся в этой вкладке.'
+      keyInput.placeholder = 'github_pat_...'
+    }
+
+    // Token is kept only for the current browser tab session.
+    try { keyInput.value = sessionStorage.getItem('bashmak-admin-key') || '' } catch {}
+
+    function b64EncodeUnicode(str) {
+      return btoa(unescape(encodeURIComponent(str)))
+    }
+    function b64DecodeUnicode(str) {
+      return decodeURIComponent(escape(atob(String(str).replace(/\s/g, ''))))
+    }
+
+    function normalizeLink(raw) {
+      const value = String(raw || '').trim()
+      if (!value) return ''
+      const withScheme = /^https?:\/\//i.test(value) ? value : 'https://' + value
+      try {
+        const url = new URL(withScheme)
+        if (!url.hostname.includes('.')) return ''
+        return url.href
+      } catch {
+        return ''
+      }
+    }
+
+    // --- photo attachment ---
+    const photoInput = document.getElementById('photo')
+    const photoPreview = document.getElementById('photo-preview')
+    const photoPreviewImg = document.getElementById('photo-preview-img')
+    const photoClear = document.getElementById('photo-clear')
+    let pendingPhoto = ''
+
+    function readPhoto(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) return resolve('')
+        if (!/^image\/(png|jpeg|webp)$/i.test(file.type)) {
+          return reject(new Error('Поддерживаются PNG, JPEG и WebP.'))
+        }
+        if (file.size > 12 * 1024 * 1024) {
+          return reject(new Error('Файл больше 12 МБ. Выберите фото поменьше.'))
+        }
+        const url = URL.createObjectURL(file)
+        const img = new Image()
+        img.onload = () => {
+          try {
+            const maxSide = 1200
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height))
+            const w = Math.max(1, Math.round(img.width * scale))
+            const h = Math.max(1, Math.round(img.height * scale))
+            const canvas = document.createElement('canvas')
+            canvas.width = w
+            canvas.height = h
+            const ctx = canvas.getContext('2d')
+            ctx.drawImage(img, 0, 0, w, h)
+            URL.revokeObjectURL(url)
+            resolve(canvas.toDataURL('image/jpeg', 0.82))
+          } catch (err) {
+            URL.revokeObjectURL(url)
+            reject(err)
+          }
+        }
+        img.onerror = () => {
+          URL.revokeObjectURL(url)
+          reject(new Error('Не удалось прочитать изображение.'))
+        }
+        img.src = url
+      })
+    }
+
+    function showPhotoPreview(dataUrl) {
+      pendingPhoto = dataUrl || ''
+      if (pendingPhoto) {
+        photoPreviewImg.src = pendingPhoto
+        photoPreview.hidden = false
+      } else {
+        photoPreviewImg.removeAttribute('src')
+        photoPreview.hidden = true
+      }
+    }
+
+    photoInput.addEventListener('change', async () => {
+      const file = photoInput.files && photoInput.files[0]
+      if (!file) return showPhotoPreview('')
+      try {
+        showPhotoPreview(await readPhoto(file))
+      } catch (err) {
+        showPhotoPreview('')
+        photoInput.value = ''
+        showMessage(err.message || 'Не удалось загрузить фото.', 'err')
+      }
+    })
+
+    photoClear.addEventListener('click', () => {
+      photoInput.value = ''
+      showPhotoPreview('')
+    })
+
+    async function uploadPhotoGitHub(id, dataUrl, key) {
+      const base64 = String(dataUrl).split(',')[1]
+      if (!base64) throw new Error('Пустое изображение.')
+      const path = `photos/${id}.jpg`
+      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer ' + key,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: `Add review photo: ${id}`, content: base64, branch: BRANCH }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.message || 'Не удалось загрузить фото: ' + res.status)
+      }
+      return `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${path}`
+    }
+
+    async function uploadPhotoLocal(id, dataUrl, key) {
+      const res = await fetch('api/photos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+        body: JSON.stringify({ id, data: dataUrl }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Не удалось загрузить фото: ' + res.status)
+      return data.url
+    }
+
+    async function addViaLocal(payload) {
+      const review = { ...payload }
+      if (review.photo) {
+        review.photo = await uploadPhotoLocal(payload.id, review.photo, payload.key)
+      }
+      const res = await fetch('api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': payload.key },
+        body: JSON.stringify(review),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Ошибка ' + res.status)
+      return data
+    }
+
+    async function addViaGitHub(payload) {
+      if (!payload.key) throw new Error('Введите ключ администратора')
+      const headers = {
+        Authorization: 'Bearer ' + payload.key,
+        Accept: 'application/vnd.github+json',
+      }
+      const fileUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}`
+
+      const getRes = await fetch(fileUrl, { headers, cache: 'no-store' })
+      if (getRes.status === 401 || getRes.status === 403) {
+        throw new Error('Ключ не подошёл или нет прав. Нужен fine-grained токен с Contents: Read and write.')
+      }
+      if (!getRes.ok) throw new Error('GitHub API: ' + getRes.status)
+      const file = await getRes.json()
+
+      let list = []
+      try { list = JSON.parse(b64DecodeUnicode(file.content)) } catch {}
+      if (!Array.isArray(list)) list = []
+
+      const review = {
+        id: payload.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 7)),
+        name: payload.name,
+        link: payload.link,
+        tag: payload.tag,
+        rating: payload.rating,
+        text: payload.text,
+        date: new Date().toISOString(),
+      }
+      if (payload.photo) {
+        review.photo = await uploadPhotoGitHub(review.id, payload.photo, payload.key)
+      }
+      list.push(review)
+
+      const putRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Add review: ${payload.name}`,
+          content: b64EncodeUnicode(JSON.stringify(list, null, 2)),
+          sha: file.sha,
+          branch: BRANCH,
+        }),
+      })
+      const result = await putRes.json().catch(() => ({}))
+      if (putRes.status === 409) throw new Error('Конфликт версий. Обновите страницу и отправьте отзыв ещё раз.')
+      if (!putRes.ok) throw new Error(result.message || 'GitHub API: ' + putRes.status)
+      return review
+    }
+
+    const reviewsList = document.getElementById('reviews-list')
+    const refreshBtn = document.getElementById('refresh-btn')
+    const keyStatus = document.getElementById('key-status')
+    let currentReviews = []
+
+    const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]))
+
+    function showMessage(text, type) {
+      msg.textContent = text
+      msg.className = 'msg' + (type ? ' ' + type : '')
+      try { msg.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) } catch {}
+    }
+
+    function setKeyStatus(text, cls) {
+      keyStatus.textContent = text
+      keyStatus.className = 'key-status' + (cls ? ' ' + cls : '')
+    }
+
+    async function readGithubFile(key) {
+      const headers = key
+        ? { Authorization: 'Bearer ' + key, Accept: 'application/vnd.github+json' }
+        : { Accept: 'application/vnd.github+json' }
+      const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}&t=${Date.now()}`,
+        { headers, cache: 'no-store' }
+      )
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('Ключ не подошёл или у него нет прав Contents: Read and write.')
+      }
+      if (res.status === 404) throw new Error('Файл reviews.json не найден в репозитории.')
+      if (!res.ok) throw new Error('GitHub API: ' + res.status)
+      const file = await res.json()
+      let list = []
+      try { list = JSON.parse(b64DecodeUnicode(file.content || '')) } catch {}
+      if (!Array.isArray(list)) throw new Error('Не удалось прочитать reviews.json.')
+      return { file, list }
+    }
+
+    async function fetchReviewList() {
+      if (isLocal) {
+        try {
+          const res = await fetch('api/reviews', { cache: 'no-store' })
+          if (res.ok) {
+            const data = await res.json()
+            if (Array.isArray(data)) return data
+          }
+        } catch {}
+      }
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/reviews.json?t=${Date.now()}`, { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) return data
+        }
+      } catch {}
+      try {
+        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json?ref=${BRANCH}&t=${Date.now()}`, {
+          headers: { accept: 'application/vnd.github.raw+json' },
+          cache: 'no-store',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) return data
+        }
+      } catch {}
+      return []
+    }
+
+    function renderReviewList(list) {
+      if (!Array.isArray(list) || !list.length) {
+        reviewsList.innerHTML = '<p class="reviews-empty">Отзывов пока нет.</p>'
+        return
+      }
+      reviewsList.innerHTML = list.map((r) => {
+        const text = String(r.text || '')
+        const short = text.length > 120 ? text.slice(0, 120) + '…' : text
+        return `
+          <div class="review-item" data-id="${escapeHtml(r.id)}">
+            <div class="review-item__head">
+              <div>
+                <div class="review-item__name">${escapeHtml(r.name || 'Клиент')}</div>
+                <div class="review-item__meta">${escapeHtml(r.tag || 'без тега')} · ${r.rating || 5}★</div>
+              </div>
+              <button class="delete-btn" type="button" data-delete="${escapeHtml(r.id)}">Удалить</button>
+            </div>
+            <p class="review-item__text">${escapeHtml(short)}</p>
+            ${r.photo ? `<div class="review-item__photo"><img src="${escapeHtml(r.photo)}" alt="Фото к отзыву ${escapeHtml(r.name || '')}" loading="lazy" /></div>` : ''}
+            <p class="review-item__status" data-status hidden></p>
+          </div>
+        `
+      }).join('')
+    }
+
+    async function refreshReviewList() {
+      currentReviews = await fetchReviewList()
+      renderReviewList(currentReviews)
+    }
+
+    async function deleteLocal(id, key) {
+      const res = await fetch('api/reviews/' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: { 'x-admin-key': key },
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 401) throw new Error('Ключ не подошёл. Проверьте значение ADMIN_KEY.')
+      if (!res.ok) throw new Error(data.error || 'Ошибка ' + res.status)
+    }
+
+    async function deleteViaGitHub(id, key) {
+      const { file, list } = await readGithubFile(key)
+      const next = list.filter((r) => String(r.id) !== String(id))
+      if (next.length === list.length) throw new Error('Этого отзыва уже нет в reviews.json — обновите список.')
+      const putRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/reviews.json`, {
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer ' + key,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Delete review: ${id}`,
+          content: b64EncodeUnicode(JSON.stringify(next, null, 2)),
+          sha: file.sha,
+          branch: BRANCH,
+        }),
+      })
+      const result = await putRes.json().catch(() => ({}))
+      if (putRes.status === 409) throw new Error('Конфликт версий. Обновите список и попробуйте снова.')
+      if (putRes.status === 401 || putRes.status === 403) throw new Error('Нет прав на запись. Нужен токен с Contents: Read and write.')
+      if (!putRes.ok) throw new Error(result.message || 'GitHub API: ' + putRes.status)
+    }
+
+    async function verifyKey() {
+      const key = keyInput.value.trim()
+      if (!key) { setKeyStatus('', ''); return }
+
+      if (isLocal) {
+        setKeyStatus('Проверяем ключ…', 'checking')
+        try {
+          const res = await fetch('api/verify', { headers: { 'x-admin-key': key }, cache: 'no-store' })
+          if (res.ok) setKeyStatus('Ключ принят. Можно добавлять и удалять отзывы.', 'ok')
+          else setKeyStatus('Ключ не подошёл.', 'err')
+        } catch {
+          setKeyStatus('Не удалось проверить ключ.', 'err')
+        }
+        return
+      }
+
+      setKeyStatus('Проверяем токен и права на запись…', 'checking')
+      try {
+        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}`, {
+          headers: { Authorization: 'Bearer ' + key, Accept: 'application/vnd.github+json' },
+          cache: 'no-store',
+        })
+        if (res.status === 401) {
+          setKeyStatus('GitHub не принял токен: он просрочен, отозван или скопирован с ошибкой.', 'err')
+          return
+        }
+        if (!res.ok) { setKeyStatus('GitHub API: ' + res.status, 'err'); return }
+        const repo = await res.json()
+        const p = repo.permissions || {}
+        if (p.push || p.admin || p.maintain) setKeyStatus('Токен принят, права на запись есть. Можно удалять.', 'ok')
+        else setKeyStatus('Токен принят, но прав на запись нет. Fine-grained: Contents → Read and write.', 'err')
+      } catch (err) {
+        setKeyStatus('Не удалось проверить токен: ' + (err.message || err), 'err')
+      }
+    }
+
+    reviewsList.addEventListener('click', async (e) => {
+      const button = e.target.closest('[data-delete]')
+      if (!button) return
+      const id = button.getAttribute('data-delete')
+      const item = button.closest('.review-item')
+      const status = item && item.querySelector('[data-status]')
+      const key = keyInput.value.trim()
+
+      if (!key) {
+        showMessage('Сначала введите ключ администратора в поле выше — без него удаление невозможно.', 'err')
+        keyInput.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        keyInput.focus()
+        return
+      }
+      if (!confirm('Удалить этот отзыв?')) return
+
+      button.disabled = true
+      button.textContent = 'Удаляем…'
+      if (status) {
+        status.hidden = false
+        status.className = 'review-item__status'
+        status.textContent = isLocal ? 'Отправляем запрос…' : 'Проверяем токен и удаляем…'
+      }
+
+      try {
+        if (isLocal) await deleteLocal(id, key)
+        else await deleteViaGitHub(id, key)
+
+        try { sessionStorage.setItem('bashmak-admin-key', key) } catch {}
+        showMessage(isLocal ? 'Отзыв удалён.' : 'Отзыв удалён из reviews.json. На сайте исчезнет в течение 1–5 минут.', 'ok')
+
+        // Show a fresh list straight from the source, not just a local filter.
+        let fresh = null
+        try {
+          fresh = isLocal ? await fetchReviewList() : (await readGithubFile(key)).list
+        } catch {}
+        currentReviews = Array.isArray(fresh) ? fresh : currentReviews.filter((r) => String(r.id) !== String(id))
+        renderReviewList(currentReviews)
+      } catch (err) {
+        const text = err.message || 'Не удалось удалить отзыв.'
+        showMessage(text, 'err')
+        if (status) {
+          status.hidden = false
+          status.className = 'review-item__status is-error'
+          status.textContent = text
+        }
+        button.disabled = false
+        button.textContent = 'Удалить'
+      }
+    })
+
+    refreshBtn.addEventListener('click', async () => {
+      refreshBtn.disabled = true
+      refreshBtn.textContent = 'Обновляем…'
+      try {
+        await refreshReviewList()
+        showMessage('Список отзывов обновлён.', 'ok')
+      } catch (err) {
+        showMessage(err.message || 'Не удалось обновить список.', 'err')
+      } finally {
+        refreshBtn.disabled = false
+        refreshBtn.textContent = 'Обновить'
+      }
+    })
+
+    // Keep the key across reloads in this tab and check it as soon as it is typed.
+    let keyTimer = null
+    keyInput.addEventListener('input', () => {
+      const value = keyInput.value.trim()
+      try { sessionStorage.setItem('bashmak-admin-key', value) } catch {}
+      setKeyStatus('', '')
+      clearTimeout(keyTimer)
+      if (value) keyTimer = setTimeout(verifyKey, 700)
+    })
+    keyInput.addEventListener('blur', verifyKey)
+
+    refreshReviewList()
+    if (keyInput.value.trim()) setTimeout(verifyKey, 400)
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      msg.textContent = ''
+      msg.className = 'msg'
+      btn.disabled = true
+      btn.textContent = 'Сохраняем…'
+
+      const key = keyInput.value.trim()
+      const rawLink = document.getElementById('link').value.trim()
+      const link = normalizeLink(rawLink)
+      if (rawLink && !link) {
+        msg.textContent = 'Ссылка выглядит некорректно. Укажите адрес вида https://vk.com/... или https://t.me/...'
+        msg.classList.add('err')
+        btn.disabled = false
+        btn.textContent = 'Сохранить отзыв'
+        return
+      }
+
+      const payload = {
+        key,
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        name: document.getElementById('name').value.trim(),
+        link,
+        tag: document.getElementById('tag').value,
+        rating: Number(document.getElementById('rating').value),
+        text: document.getElementById('text').value.trim(),
+        photo: pendingPhoto || '',
+      }
+
+      try {
+        if (isLocal) await addViaLocal(payload)
+        else await addViaGitHub(payload)
+
+        try { sessionStorage.setItem('bashmak-admin-key', key) } catch {}
+
+        msg.textContent = isLocal
+          ? 'Отзыв добавлен! Он уже виден на локальном сайте.'
+          : 'Отзыв отправлен в общий reviews.json. На сайте он появится в течение 1–5 минут.'
+        msg.classList.add('ok')
+        document.getElementById('name').value = ''
+        document.getElementById('link').value = ''
+        document.getElementById('text').value = ''
+        photoInput.value = ''
+        showPhotoPreview('')
+      } catch (err) {
+        msg.textContent = err.message || 'Не удалось сохранить отзыв.'
+        msg.classList.add('err')
+      } finally {
+        btn.disabled = false
+        btn.textContent = 'Сохранить отзыв'
+      }
+    })
+  </script>
+</body>
+</html>
