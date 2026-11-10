@@ -151,7 +151,7 @@ async function loadReviews() {
           </div>
         </div>
         <p class="review-text">${textHtml}</p>
-        ${r.photo ? `<img class="review-photo" src="${escapeHtml(r.photo)}" alt="Фото к отзыву ${escapeHtml(r.name || '')}" loading="lazy" decoding="async" />` : ''}
+        ${r.photo ? `<button type="button" class="review-attachment" data-photo-src="${escapeHtml(r.photo)}" data-photo-alt="Фото к отзыву ${escapeHtml(r.name || '')}">📎 Вложение</button>` : ''}
         ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
       </article>
     `
@@ -169,6 +169,63 @@ async function loadReviews() {
 }
 
 loadReviews()
+
+// --- Photo overlay for review attachments ---
+;(function initPhotoOverlay() {
+  const overlay = document.getElementById('photo-overlay')
+  const img = document.getElementById('photo-overlay-img')
+  const closeBtn = document.getElementById('photo-overlay-close')
+  if (!overlay || !img || !closeBtn) return
+
+  let lastFocused = null
+
+  function openPhoto(src, alt) {
+    if (!src) return
+    lastFocused = document.activeElement
+    img.src = src
+    img.alt = alt || 'Фото из отзыва'
+    overlay.hidden = false
+    // Force reflow so the transition plays
+    void overlay.offsetWidth
+    overlay.classList.add('is-open')
+    closeBtn.focus()
+    document.body.style.overflow = 'hidden'
+  }
+
+  function closePhoto() {
+    overlay.classList.remove('is-open')
+    document.body.style.overflow = ''
+    setTimeout(() => {
+      overlay.hidden = true
+      img.removeAttribute('src')
+      img.alt = ''
+    }, 260)
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      try { lastFocused.focus() } catch {}
+    }
+    lastFocused = null
+  }
+
+  // Delegate clicks on dynamically rendered attachment buttons
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.review-attachment')
+    if (!btn) return
+    e.preventDefault()
+    openPhoto(btn.getAttribute('data-photo-src'), btn.getAttribute('data-photo-alt'))
+  })
+
+  closeBtn.addEventListener('click', closePhoto)
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closePhoto()
+  })
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('is-open')) {
+      closePhoto()
+    }
+  })
+})()
 
 // --- Live chart: endlessly rising line ---
 function initChart() {
