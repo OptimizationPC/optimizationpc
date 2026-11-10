@@ -1139,16 +1139,77 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .review-text::-webkit-scrollbar-thumb:hover { background: rgba(255, 166, 0, .65); }
 
-.review-photo {
-  display: block;
-  width: 100%;
-  max-width: 260px;
+.review-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 14px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 166, 0, .35);
+  border-radius: 999px;
+  background: rgba(255, 166, 0, .08);
+  color: var(--orange-bright);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.review-attachment:hover,
+.review-attachment:focus-visible {
+  background: rgba(255, 166, 0, .18);
+  border-color: rgba(255, 166, 0, .55);
+  transform: translateY(-1px);
+}
+.review-attachment:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+.photo-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s ease, visibility .25s ease;
+}
+.photo-overlay.is-open { opacity: 1; visibility: visible; }
+.photo-overlay__img {
+  max-width: 60vw;
+  max-height: 60vh;
+  width: auto;
   height: auto;
-  margin: 12px 0 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, .14);
-  background: rgba(255, 255, 255, .04);
-  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  object-fit: contain;
+}
+.photo-overlay__close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s ease;
+}
+.photo-overlay__close:hover,
+.photo-overlay__close:focus-visible { background: rgba(255, 255, 255, .25); }
+.photo-overlay__close:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+@media (max-width: 860px) {
+  .photo-overlay__img { max-width: 90vw; max-height: 80vh; }
 }
 
 .review-date {
