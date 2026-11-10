@@ -151,6 +151,7 @@ async function loadReviews() {
           </div>
         </div>
         <p class="review-text">${textHtml}</p>
+        ${r.photo ? `<img class="review-photo" src="${escapeHtml(r.photo)}" alt="Фото к отзыву ${escapeHtml(r.name || '')}" loading="lazy" decoding="async" />` : ''}
         ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
       </article>
     `
