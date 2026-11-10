@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /optimizationpc/admin.html
+Disallow: /optimizationpc/panel-9x2k.html
 
 Sitemap: https://optimizationpc.github.io/optimizationpc/sitemap.xml
