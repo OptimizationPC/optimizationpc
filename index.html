@@ -640,7 +640,13 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=5"></script>
+  <!-- Photo overlay for review attachments -->
+  <div class="photo-overlay" id="photo-overlay" role="dialog" aria-modal="true" aria-label="Фото из отзыва" hidden>
+    <button class="photo-overlay__close" id="photo-overlay-close" type="button" aria-label="Закрыть">✕</button>
+    <img class="photo-overlay__img" id="photo-overlay-img" alt="" />
+  </div>
+
+  <script type="module" src="app.js?v=6"></script>
   <script type="module" src="shader.js?v=1"></script>
 </body>
 </html>
