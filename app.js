@@ -215,11 +215,24 @@ function setupReviewPager(pageCount) {
   }
 
   const pages = [...reviewsGrid.querySelectorAll('.reviews-page')]
-  // Scroll offsets of each page relative to the grid's content box.
+  // Exact scroll offset of a page, independent of padding and offsetParent.
   const pageLeft = (index) => {
     const page = pages[index]
     if (!page) return 0
-    return page.offsetLeft - reviewsGrid.clientLeft
+    const gridRect = reviewsGrid.getBoundingClientRect()
+    const pageRect = page.getBoundingClientRect()
+    return Math.max(0, Math.round(pageRect.left - gridRect.left + reviewsGrid.scrollLeft))
+  }
+
+  const nearestPageIndex = () => {
+    const current = reviewsGrid.scrollLeft
+    let nearest = 0
+    let min = Infinity
+    pages.forEach((page, i) => {
+      const dist = Math.abs(pageLeft(i) - current)
+      if (dist < min) { min = dist; nearest = i }
+    })
+    return nearest
   }
 
   dots.forEach((dot) => {
@@ -236,29 +249,12 @@ function setupReviewPager(pageCount) {
     reviewsGrid.addEventListener('scroll', () => {
       clearTimeout(scrollTimer)
       scrollTimer = setTimeout(() => {
-        const current = reviewsGrid.scrollLeft
-        let nearest = 0
-        let min = Infinity
-        pages.forEach((page, i) => {
-          const dist = Math.abs(pageLeft(i) - current)
-          if (dist < min) { min = dist; nearest = i }
-        })
-        setActive(nearest)
+        setActive(nearestPageIndex())
       }, 90)
     }, { passive: true })
 
     // Mouse wheel scrolling is intentionally NOT handled: the page scrolls
     // normally and the reviews only page via dots or drag.
-    let nearestPage = () => {
-      const current = reviewsGrid.scrollLeft
-      let nearest = 0
-      let min = Infinity
-      pages.forEach((page, i) => {
-        const dist = Math.abs(pageLeft(i) - current)
-        if (dist < min) { min = dist; nearest = i }
-      })
-      return nearest
-    }
 
     // Drag with the mouse: press and move left/right to swipe the reviews.
     let dragStartX = 0
@@ -272,14 +268,14 @@ function setupReviewPager(pageCount) {
       reviewsGrid.classList.remove('is-dragging')
       if (!dragMoved) return
 
-      // Settle on the nearest page after the drag. Snap stays off for a moment
-      // (class removed on the next paint) so our own position wins.
-      const index = nearestPage()
+      // Settle on the nearest page after the drag.
+      const index = nearestPageIndex()
       setActive(index)
+      const target = pageLeft(index)
       reviewsGrid.style.scrollBehavior = 'auto'
-      reviewsGrid.scrollLeft = pageLeft(index)
+      reviewsGrid.scrollLeft = target
       requestAnimationFrame(() => {
-        reviewsGrid.scrollLeft = pageLeft(index)
+        reviewsGrid.scrollLeft = target
         requestAnimationFrame(() => reviewsGrid.style.removeProperty('scroll-behavior'))
       })
     }
