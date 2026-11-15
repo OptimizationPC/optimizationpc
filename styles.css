@@ -1040,7 +1040,8 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* --- reviews --- */
 .reviews-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1059,7 +1060,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 .review-card {
   position: relative;
-  flex: 1 0 200px;
+  min-width: 0;
   padding: 28px 26px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -1108,17 +1109,14 @@ ul { margin: 0; padding: 0; list-style: none; }
   white-space: nowrap;
 }
 
-.review-stars {
-  display: flex;
-  gap: 3px;
-  margin-bottom: 0;
+.review-rating {
+  font-family: "Unbounded", sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--orange);
+  line-height: 1;
+  letter-spacing: -.02em;
 }
-
-.review-star {
-  font-size: 14px;
-  color: rgba(255, 255, 255, .15);
-}
-.review-star.is-filled { color: var(--orange); }
 
 .review-text {
   color: var(--muted);
