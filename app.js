@@ -126,6 +126,7 @@ async function loadReviews() {
     return
   }
 
+  // A page always shows 4 reviews in one row; the last page keeps the same width.
   const PER_PAGE = 4
 
   const cardHtml = (r) => {
@@ -162,7 +163,7 @@ async function loadReviews() {
 
   reviewsGrid.innerHTML = pages
     .map((page, index) => `
-      <div class="reviews-page" data-page="${index}" aria-label="Страница отзывов ${index + 1} из ${pages.length}">
+      <div class="reviews-page${page.length < PER_PAGE ? ' is-partial' : ''}" data-page="${index}" aria-label="Страница отзывов ${index + 1} из ${pages.length}">
         ${page.map(cardHtml).join('')}
       </div>
     `)
