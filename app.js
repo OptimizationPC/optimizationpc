@@ -64,6 +64,15 @@ function socialNetworkOf(link) {
   return ''
 }
 
+// How many reviews fit in one row on the current screen.
+function reviewsPerPage() {
+  if (typeof window === 'undefined') return 4
+  const w = window.innerWidth
+  if (w <= 640) return 1
+  if (w <= 1080) return 2
+  return 4
+}
+
 async function loadReviews() {
   if (!reviewsGrid) return
   if (typeof fetch !== 'function') {
@@ -126,19 +135,17 @@ async function loadReviews() {
     return
   }
 
-  // A page always shows 4 reviews in one row; the last page keeps the same width.
-  const PER_PAGE = 4
-
+  const escapeHtmlLocal = escapeHtml
   const cardHtml = (r) => {
     const rating = Math.min(5, Math.max(1, parseInt(r.rating, 10) || 5))
     const dateStr = formatDate(r.date)
-    const tagHtml = r.tag ? `<span class="review-tag">${escapeHtml(r.tag)}</span>` : ''
-    const textHtml = escapeHtml(r.text || '').replace(/\n/g, '<br>')
+    const tagHtml = r.tag ? `<span class="review-tag">${escapeHtmlLocal(r.tag)}</span>` : ''
+    const textHtml = escapeHtmlLocal(r.text || '').replace(/\n/g, '<br>')
     const link = safeReviewLink(r.link)
-    const name = escapeHtml(r.name || 'Клиент')
+    const name = escapeHtmlLocal(r.name || 'Клиент')
     const icon = socialNetworkOf(link)
     const nameHtml = link
-      ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${name}${SOCIAL_ICONS[icon] || SOCIAL_ICONS.external}</a>`
+      ? `<a href="${escapeHtmlLocal(link)}" target="_blank" rel="noopener noreferrer">${name}${SOCIAL_ICONS[icon] || SOCIAL_ICONS.external}</a>`
       : name
 
     return `
@@ -151,46 +158,62 @@ async function loadReviews() {
           </div>
         </div>
         <p class="review-text">${textHtml}</p>
-        ${r.photo ? `<button type="button" class="review-attachment" data-photo-src="${escapeHtml(r.photo)}" data-photo-alt="Фото к отзыву ${escapeHtml(r.name || '')}">Вложение</button>` : ''}
-        ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
+        ${r.photo ? `<button type="button" class="review-attachment" data-photo-src="${escapeHtmlLocal(r.photo)}" data-photo-alt="Фото к отзыву ${escapeHtmlLocal(r.name || '')}">Вложение</button>` : ''}
+        ${dateStr ? `<time class="review-date" datetime="${escapeHtmlLocal(r.date || '')}">${escapeHtmlLocal(dateStr)}</time>` : ''}
       </article>
     `
   }
 
-  // Split into pages of 4 and keep each page on its own horizontal slide.
-  const pages = []
-  for (let i = 0; i < list.length; i += PER_PAGE) pages.push(list.slice(i, i + PER_PAGE))
+  // Reviews per page depend on the screen: 4 → 2 → 1.
+  const renderPages = (perPage) => {
+    const pages = []
+    for (let i = 0; i < list.length; i += perPage) pages.push(list.slice(i, i + perPage))
 
-  reviewsGrid.innerHTML = pages
-    .map((page, index) => `
-      <div class="reviews-page${page.length < PER_PAGE ? ' is-partial' : ''}" data-page="${index}" aria-label="Страница отзывов ${index + 1} из ${pages.length}">
-        ${page.map(cardHtml).join('')}
-      </div>
-    `)
-    .join('')
+    reviewsGrid.dataset.perPage = String(perPage)
+    reviewsGrid.innerHTML = pages
+      .map((page, index) => `
+        <div class="reviews-page${page.length < perPage ? ' is-partial' : ''}" data-page="${index}" style="--per-page:${perPage}" aria-label="Страница отзывов ${index + 1} из ${pages.length}">
+          ${page.map(cardHtml).join('')}
+        </div>
+      `)
+      .join('')
 
-  setupReviewPager(pages.length)
+    setupReviewPager(pages.length)
 
-  // Always start from the first review, never from a restored scroll position.
-  reviewsGrid.scrollLeft = 0
-  requestAnimationFrame(() => { reviewsGrid.scrollLeft = 0 })
-  setTimeout(() => {
-    if (reviewsGrid.scrollLeft < 1) return
-    const style = reviewsGrid.style.scrollBehavior
-    reviewsGrid.style.scrollBehavior = 'auto'
+    // Always start from the first review, never from a restored scroll position.
     reviewsGrid.scrollLeft = 0
-    reviewsGrid.style.scrollBehavior = style
-  }, 60)
+    requestAnimationFrame(() => { reviewsGrid.scrollLeft = 0 })
+    setTimeout(() => {
+      if (reviewsGrid.scrollLeft < 1) return
+      const style = reviewsGrid.style.scrollBehavior
+      reviewsGrid.style.scrollBehavior = 'auto'
+      reviewsGrid.scrollLeft = 0
+      reviewsGrid.style.scrollBehavior = style
+    }, 60)
 
-  // Observe newly added review cards for reveal animation
-  if (revealObserver) {
-    reviewsGrid.querySelectorAll('.reveal:not(.is-visible)').forEach((el, i) => {
-      el.style.setProperty('--reveal-delay', `${Math.min(i * 60, 180)}ms`)
-      revealObserver.observe(el)
-    })
-  } else {
-    reviewsGrid.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'))
+    // Observe newly added review cards for reveal animation
+    if (revealObserver) {
+      reviewsGrid.querySelectorAll('.reveal:not(.is-visible)').forEach((el, i) => {
+        el.style.setProperty('--reveal-delay', `${Math.min(i * 60, 180)}ms`)
+        revealObserver.observe(el)
+      })
+    } else {
+      reviewsGrid.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'))
+    }
   }
+
+  renderPages(reviewsPerPage())
+
+  // Re-paginate only when the breakpoint actually changes.
+  let resizeTimer = null
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(() => {
+      const next = reviewsPerPage()
+      if (String(next) === reviewsGrid.dataset.perPage) return
+      renderPages(next)
+    }, 180)
+  }, { passive: true })
 }
 
 // Horizontal pagination: scroll by full pages, keep dots in sync.
