@@ -247,8 +247,8 @@ function setupReviewPager(pageCount) {
       }, 90)
     }, { passive: true })
 
-    // Mouse wheel scrolls the reviews horizontally, page by page.
-    let wheelLock = false
+    // Mouse wheel scrolling is intentionally NOT handled: the page scrolls
+    // normally and the reviews only page via dots or drag.
     let nearestPage = () => {
       const current = reviewsGrid.scrollLeft
       let nearest = 0
@@ -259,24 +259,6 @@ function setupReviewPager(pageCount) {
       })
       return nearest
     }
-
-    reviewsGrid.addEventListener('wheel', (e) => {
-      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX
-      if (!delta) return
-      const max = reviewsGrid.scrollWidth - reviewsGrid.clientWidth
-      const atStart = reviewsGrid.scrollLeft <= 1
-      const atEnd = reviewsGrid.scrollLeft >= max - 1
-      if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return
-
-      e.preventDefault()
-      if (wheelLock) return
-      wheelLock = true
-      setTimeout(() => { wheelLock = false }, 450)
-
-      const next = Math.min(pages.length - 1, Math.max(0, nearestPage() + (delta > 0 ? 1 : -1)))
-      setActive(next)
-      reviewsGrid.scrollTo({ left: pageLeft(next), behavior: 'smooth' })
-    }, { passive: false })
 
     // Drag with the mouse: press and move left/right to swipe the reviews.
     let dragStartX = 0
