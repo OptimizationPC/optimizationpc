@@ -145,7 +145,7 @@ async function loadReviews() {
         <div class="review-header">
           <span class="review-name">${nameHtml}</span>
           <div class="review-meta">
-            <span class="review-rating" aria-label="Оценка: ${rating} из 5">${rating}</span>
+            <span class="review-rating" aria-label="Оценка: ${rating} из 5">${rating}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.7l-5.9 3.1 1.2-6.6L2.5 9.5l6.6-.9L12 2.5z"/></svg></span>
             ${tagHtml}
           </div>
         </div>
@@ -202,10 +202,18 @@ function setupReviewPager(pageCount) {
     dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index))
   }
 
+  const pages = [...reviewsGrid.querySelectorAll('.reviews-page')]
+  const pageLeft = (index) => {
+    const page = pages[index]
+    if (!page) return 0
+    return page.offsetLeft - reviewsGrid.offsetLeft
+  }
+
   dots.forEach((dot) => {
     dot.addEventListener('click', () => {
       const index = Number(dot.getAttribute('data-page')) || 0
-      reviewsGrid.scrollTo({ left: reviewsGrid.clientWidth * index, behavior: 'smooth' })
+      setActive(index)
+      reviewsGrid.scrollTo({ left: pageLeft(index), behavior: 'smooth' })
     })
   })
 
@@ -215,10 +223,43 @@ function setupReviewPager(pageCount) {
     reviewsGrid.addEventListener('scroll', () => {
       clearTimeout(scrollTimer)
       scrollTimer = setTimeout(() => {
-        const width = reviewsGrid.clientWidth || 1
-        setActive(Math.round(reviewsGrid.scrollLeft / width))
+        const current = reviewsGrid.scrollLeft
+        let nearest = 0
+        let min = Infinity
+        pages.forEach((page, i) => {
+          const dist = Math.abs(pageLeft(i) - current)
+          if (dist < min) { min = dist; nearest = i }
+        })
+        setActive(nearest)
       }, 90)
     }, { passive: true })
+
+    // Mouse wheel scrolls the reviews horizontally, page by page.
+    let wheelLock = false
+    reviewsGrid.addEventListener('wheel', (e) => {
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX
+      if (!delta) return
+      const max = reviewsGrid.scrollWidth - reviewsGrid.clientWidth
+      const atStart = reviewsGrid.scrollLeft <= 1
+      const atEnd = reviewsGrid.scrollLeft >= max - 1
+      if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return
+
+      e.preventDefault()
+      if (wheelLock) return
+      wheelLock = true
+      setTimeout(() => { wheelLock = false }, 450)
+
+      const current = reviewsGrid.scrollLeft
+      let nearest = 0
+      let min = Infinity
+      pages.forEach((page, i) => {
+        const dist = Math.abs(pageLeft(i) - current)
+        if (dist < min) { min = dist; nearest = i }
+      })
+      const next = Math.min(pages.length - 1, Math.max(0, nearest + (delta > 0 ? 1 : -1)))
+      setActive(next)
+      reviewsGrid.scrollTo({ left: pageLeft(next), behavior: 'smooth' })
+    }, { passive: false })
   }
 }
 
