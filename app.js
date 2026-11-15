@@ -151,7 +151,7 @@ async function loadReviews() {
           </div>
         </div>
         <p class="review-text">${textHtml}</p>
-        ${r.photo ? `<button type="button" class="review-attachment" data-photo-src="${escapeHtml(r.photo)}" data-photo-alt="Фото к отзыву ${escapeHtml(r.name || '')}">📎 Вложение</button>` : ''}
+        ${r.photo ? `<button type="button" class="review-attachment" data-photo-src="${escapeHtml(r.photo)}" data-photo-alt="Фото к отзыву ${escapeHtml(r.name || '')}">Вложение</button>` : ''}
         ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
       </article>
     `
@@ -204,10 +204,11 @@ function setupReviewPager(pageCount) {
   }
 
   const pages = [...reviewsGrid.querySelectorAll('.reviews-page')]
+  // Scroll offsets of each page relative to the grid's content box.
   const pageLeft = (index) => {
     const page = pages[index]
     if (!page) return 0
-    return page.offsetLeft - reviewsGrid.offsetLeft
+    return page.offsetLeft - reviewsGrid.clientLeft
   }
 
   dots.forEach((dot) => {
@@ -237,6 +238,17 @@ function setupReviewPager(pageCount) {
 
     // Mouse wheel scrolls the reviews horizontally, page by page.
     let wheelLock = false
+    let nearestPage = () => {
+      const current = reviewsGrid.scrollLeft
+      let nearest = 0
+      let min = Infinity
+      pages.forEach((page, i) => {
+        const dist = Math.abs(pageLeft(i) - current)
+        if (dist < min) { min = dist; nearest = i }
+      })
+      return nearest
+    }
+
     reviewsGrid.addEventListener('wheel', (e) => {
       const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX
       if (!delta) return
@@ -250,17 +262,70 @@ function setupReviewPager(pageCount) {
       wheelLock = true
       setTimeout(() => { wheelLock = false }, 450)
 
-      const current = reviewsGrid.scrollLeft
-      let nearest = 0
-      let min = Infinity
-      pages.forEach((page, i) => {
-        const dist = Math.abs(pageLeft(i) - current)
-        if (dist < min) { min = dist; nearest = i }
-      })
-      const next = Math.min(pages.length - 1, Math.max(0, nearest + (delta > 0 ? 1 : -1)))
+      const next = Math.min(pages.length - 1, Math.max(0, nearestPage() + (delta > 0 ? 1 : -1)))
       setActive(next)
       reviewsGrid.scrollTo({ left: pageLeft(next), behavior: 'smooth' })
     }, { passive: false })
+
+    // Drag with the mouse: press and move left/right to swipe the reviews.
+    let dragStartX = 0
+    let dragStartScroll = 0
+    let dragging = false
+    let dragMoved = false
+
+    const endDrag = () => {
+      if (!dragging) return
+      dragging = false
+      reviewsGrid.classList.remove('is-dragging')
+      if (!dragMoved) return
+
+      // Settle on the nearest page after the drag. Snap stays off for a moment
+      // (class removed on the next paint) so our own position wins.
+      const index = nearestPage()
+      setActive(index)
+      reviewsGrid.style.scrollBehavior = 'auto'
+      reviewsGrid.scrollLeft = pageLeft(index)
+      requestAnimationFrame(() => {
+        reviewsGrid.scrollLeft = pageLeft(index)
+        requestAnimationFrame(() => reviewsGrid.style.removeProperty('scroll-behavior'))
+      })
+    }
+
+    reviewsGrid.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse') return
+      if (e.button !== 0) return
+      if (e.target.closest('.review-attachment, a, button')) return
+      dragging = true
+      dragMoved = false
+      dragStartX = e.clientX
+      dragStartScroll = reviewsGrid.scrollLeft
+      reviewsGrid.classList.add('is-dragging')
+    })
+
+    window.addEventListener('pointermove', (e) => {
+      if (!dragging) return
+      const dx = e.clientX - dragStartX
+      if (Math.abs(dx) > 4) dragMoved = true
+      if (!dragMoved) return
+      reviewsGrid.scrollLeft = dragStartScroll - dx
+    })
+
+    reviewsGrid.addEventListener('pointerleave', (e) => {
+      if (!dragging) return
+      if (e.buttons === 0) endDrag()
+    })
+
+    window.addEventListener('pointerup', endDrag)
+    window.addEventListener('pointercancel', endDrag)
+    reviewsGrid.addEventListener('dragstart', (e) => e.preventDefault())
+
+    // A drag should not turn into a click on the review underneath.
+    reviewsGrid.addEventListener('click', (e) => {
+      if (!dragMoved) return
+      e.preventDefault()
+      e.stopPropagation()
+      dragMoved = false
+    }, true)
   }
 }
 
