@@ -1059,8 +1059,20 @@ ul { margin: 0; padding: 0; list-style: none; }
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .reviews-grid::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* Drag-to-scroll: follow the mouse without snapping mid-drag */
+.reviews-grid.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  scroll-behavior: auto !important;
+  scroll-snap-stop: normal;
+}
+.reviews-grid.is-dragging * { cursor: grabbing; }
 
 /* One page = all reviews of the page in a single row */
 .reviews-page {
