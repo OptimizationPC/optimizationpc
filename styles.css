@@ -1062,23 +1062,24 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .reviews-grid::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
-/* One page = up to 4 reviews, laid out in a single row */
+/* One page = all reviews of the page in a single row */
 .reviews-page {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
   gap: 20px;
   flex: 0 0 100%;
   width: 100%;
   min-width: 100%;
+  align-items: stretch;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
-
-@media (max-width: 1080px) {
-  .reviews-page { grid-template-columns: repeat(2, 1fr); }
+.reviews-page > .review-card {
+  flex: 1 1 0;
+  min-width: 0;
 }
-@media (max-width: 640px) {
-  .reviews-page { grid-template-columns: 1fr; }
+/* The last page keeps the same card width so all reviews read as one row */
+.reviews-page.is-partial > .review-card {
+  flex: 0 0 calc((100% - 60px) / 4);
 }
 
 .reviews-pager {
