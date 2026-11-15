@@ -126,7 +126,9 @@ async function loadReviews() {
     return
   }
 
-  reviewsGrid.innerHTML = list.map((r) => {
+  const PER_PAGE = 4
+
+  const cardHtml = (r) => {
     const rating = Math.min(5, Math.max(1, parseInt(r.rating, 10) || 5))
     const dateStr = formatDate(r.date)
     const tagHtml = r.tag ? `<span class="review-tag">${escapeHtml(r.tag)}</span>` : ''
@@ -152,7 +154,21 @@ async function loadReviews() {
         ${dateStr ? `<time class="review-date" datetime="${escapeHtml(r.date || '')}">${escapeHtml(dateStr)}</time>` : ''}
       </article>
     `
-  }).join('')
+  }
+
+  // Split into pages of 4 and keep each page on its own horizontal slide.
+  const pages = []
+  for (let i = 0; i < list.length; i += PER_PAGE) pages.push(list.slice(i, i + PER_PAGE))
+
+  reviewsGrid.innerHTML = pages
+    .map((page, index) => `
+      <div class="reviews-page" data-page="${index}" aria-label="Страница отзывов ${index + 1} из ${pages.length}">
+        ${page.map(cardHtml).join('')}
+      </div>
+    `)
+    .join('')
+
+  setupReviewPager(pages.length)
 
   // Observe newly added review cards for reveal animation
   if (revealObserver) {
@@ -162,6 +178,47 @@ async function loadReviews() {
     })
   } else {
     reviewsGrid.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'))
+  }
+}
+
+// Horizontal pagination: scroll by full pages, keep dots in sync.
+function setupReviewPager(pageCount) {
+  const pager = document.getElementById('reviews-pager')
+  if (!pager || !reviewsGrid) return
+
+  if (pageCount < 2) {
+    pager.hidden = true
+    pager.innerHTML = ''
+    return
+  }
+
+  pager.hidden = false
+  pager.innerHTML = Array.from({ length: pageCount }, (_, i) =>
+    `<button class="reviews-dot${i === 0 ? ' is-active' : ''}" type="button" data-page="${i}" aria-label="Страница ${i + 1}"></button>`
+  ).join('')
+
+  const dots = [...pager.querySelectorAll('.reviews-dot')]
+  const setActive = (index) => {
+    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index))
+  }
+
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const index = Number(dot.getAttribute('data-page')) || 0
+      reviewsGrid.scrollTo({ left: reviewsGrid.clientWidth * index, behavior: 'smooth' })
+    })
+  })
+
+  if (!reviewsGrid.dataset.pagerBound) {
+    reviewsGrid.dataset.pagerBound = '1'
+    let scrollTimer = null
+    reviewsGrid.addEventListener('scroll', () => {
+      clearTimeout(scrollTimer)
+      scrollTimer = setTimeout(() => {
+        const width = reviewsGrid.clientWidth || 1
+        setActive(Math.round(reviewsGrid.scrollLeft / width))
+      }, 90)
+    }, { passive: true })
   }
 }
 
