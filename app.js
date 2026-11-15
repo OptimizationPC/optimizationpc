@@ -171,6 +171,17 @@ async function loadReviews() {
 
   setupReviewPager(pages.length)
 
+  // Always start from the first review, never from a restored scroll position.
+  reviewsGrid.scrollLeft = 0
+  requestAnimationFrame(() => { reviewsGrid.scrollLeft = 0 })
+  setTimeout(() => {
+    if (reviewsGrid.scrollLeft < 1) return
+    const style = reviewsGrid.style.scrollBehavior
+    reviewsGrid.style.scrollBehavior = 'auto'
+    reviewsGrid.scrollLeft = 0
+    reviewsGrid.style.scrollBehavior = style
+  }, 60)
+
   // Observe newly added review cards for reveal animation
   if (revealObserver) {
     reviewsGrid.querySelectorAll('.reveal:not(.is-visible)').forEach((el, i) => {
