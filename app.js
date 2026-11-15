@@ -128,9 +128,6 @@ async function loadReviews() {
 
   reviewsGrid.innerHTML = list.map((r) => {
     const rating = Math.min(5, Math.max(1, parseInt(r.rating, 10) || 5))
-    const stars = Array.from({ length: 5 }, (_, i) =>
-      `<span class="review-star${i < rating ? ' is-filled' : ''}" aria-hidden="true">★</span>`
-    ).join('')
     const dateStr = formatDate(r.date)
     const tagHtml = r.tag ? `<span class="review-tag">${escapeHtml(r.tag)}</span>` : ''
     const textHtml = escapeHtml(r.text || '').replace(/\n/g, '<br>')
@@ -146,7 +143,7 @@ async function loadReviews() {
         <div class="review-header">
           <span class="review-name">${nameHtml}</span>
           <div class="review-meta">
-            <div class="review-stars" aria-label="Оценка: ${rating} из 5">${stars}</div>
+            <span class="review-rating" aria-label="Оценка: ${rating} из 5">${rating}</span>
             ${tagHtml}
           </div>
         </div>
